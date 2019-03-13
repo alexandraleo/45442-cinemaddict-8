@@ -1,19 +1,20 @@
 import {showFilters} from './make-filter.js';
-import {showCards, showSpecialCards} from './make-card.js';
+import {showCards} from './make-card.js';
 import {default as getRandomNumber} from './utils.js';
 
 const topRatedNode = document.querySelector(`.films-list--rated .films-list__container`);
 const topCommentedNode = document.querySelector(`.films-list--commented .films-list__container`);
 const cardsContainer = document.querySelector(`.films-list .films-list__container`);
+const filterContainer = document.querySelector(`.main-navigation`);
 
 showFilters();
-showCards();
-showSpecialCards(2, topRatedNode);
-showSpecialCards(2, topCommentedNode);
+showCards(cardsContainer, 7);
+showCards(topRatedNode, 2);
+showCards(topCommentedNode, 2);
 
-cardsContainer.addEventListener(`click`, function (evt) {
-  if (evt.target.className === `main-navigation__item`) {
+filterContainer.addEventListener(`click`, function (evt) {
+  if (evt.currentTarget.className === `main-navigation`) {
     cardsContainer.innerHTML = ``;
-    showSpecialCards(getRandomNumber(1, 7), cardsContainer);
+    showCards(cardsContainer, getRandomNumber(1, 7));
   }
 });
