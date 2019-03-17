@@ -1,11 +1,29 @@
-<section class="film-details">
+import createElement from './create-element.js';
+
+export class Popup {
+  constructor(film) {
+    this._filmTitle = film.filmTitle;
+    this._poster = film.poster;
+    this._rating = film.rating;
+    this._year = film.year;
+    this._duration = film.duration;
+    this._genre = film.genre;
+    this._description = film.description;
+    this._comments = film.comments;
+
+    this._element = null;
+    this._onClick = null;
+    this._onCloseClick = this._onCloseClick.bind(this);
+  }
+  get template() {
+    return `<section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="film-details__close">
       <button class="film-details__close-btn" type="button">close</button>
     </div>
     <div class="film-details__info-wrap">
       <div class="film-details__poster">
-        <img class="film-details__poster-img" src="images/posters/blackmail.jpg" alt="incredables-2">
+        <img class="film-details__poster-img" src="images/posters/${this._poster}.jpg" alt="incredables-2">
 
         <p class="film-details__age">18+</p>
       </div>
@@ -13,12 +31,12 @@
       <div class="film-details__info">
         <div class="film-details__info-head">
           <div class="film-details__title-wrap">
-            <h3 class="film-details__title">Incredibles 2</h3>
+            <h3 class="film-details__title">${this._filmTitle}</h3>
             <p class="film-details__title-original">Original: Невероятная семейка</p>
           </div>
 
           <div class="film-details__rating">
-            <p class="film-details__total-rating">5.2</p>
+            <p class="film-details__total-rating">${this._rating}</p>
             <p class="film-details__user-rating">Your rate 8</p>
           </div>
         </div>
@@ -42,7 +60,7 @@
           </tr>
           <tr class="film-details__row">
             <td class="film-details__term">Runtime</td>
-            <td class="film-details__cell">118 min</td>
+            <td class="film-details__cell">${this._duration}</td>
           </tr>
           <tr class="film-details__row">
             <td class="film-details__term">Country</td>
@@ -51,15 +69,14 @@
           <tr class="film-details__row">
             <td class="film-details__term">Genres</td>
             <td class="film-details__cell">
-              <span class="film-details__genre">Animation</span>
+              <span class="film-details__genre">${this._genre}</span>
               <span class="film-details__genre">Action</span>
               <span class="film-details__genre">Adventure</span></td>
           </tr>
         </table>
 
         <p class="film-details__film-description">
-          The Incredibles hero family takes on a new mission, which involves a change in family roles:
-          Bob Parr (Mr Incredible) must manage the house while his wife Helen (Elastigirl) goes out to save the world.
+          ${this._description}
         </p>
       </div>
     </div>
@@ -76,7 +93,7 @@
     </section>
 
     <section class="film-details__comments-wrap">
-      <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">1</span></h3>
+      <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${this._comments}</span></h3>
 
       <ul class="film-details__comments-list">
         <li class="film-details__comment">
@@ -121,11 +138,11 @@
 
       <div class="film-details__user-score">
         <div class="film-details__user-rating-poster">
-          <img src="images/posters/blackmail.jpg" alt="film-poster" class="film-details__user-rating-img">
+          <img src="images/posters/${this._poster}.jpg" alt="film-poster" class="film-details__user-rating-img">
         </div>
 
         <section class="film-details__user-rating-inner">
-          <h3 class="film-details__user-rating-title">Incredibles 2</h3>
+          <h3 class="film-details__user-rating-title">${this._filmTitle}</h3>
 
           <p class="film-details__user-rating-feelings">How you feel it?</p>
 
@@ -162,4 +179,27 @@
       </div>
     </section>
   </form>
-</section>
+</section>`.trim();
+  }
+  render() {
+    this._element = createElement(this.template);
+    this.bind();
+    return this._element;
+  }
+
+  _onCloseClick() {
+    return typeof this._onClick === `function` && this._onClick();
+  }
+
+  set onClick(fn) {
+    this._onClick = fn;
+  }
+  bind() {
+    this._element.querySelector(`.film-details__close-btn`).addEventListener(`click`, this._onCloseClick);
+  }
+  unrender() {}
+  unbind() {
+    this._element.querySelector(`.film-details__close-btn`).removeEventListener(`click`, this._onCloseClick);
+
+  }
+}
