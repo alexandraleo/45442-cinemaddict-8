@@ -11,6 +11,7 @@ export class Film {
     this._comments = data.comments;
 
     this._element = null;
+    this._onClick = null;
   }
   get template() {
     return `<article class="film-card">
@@ -40,7 +41,17 @@ export class Film {
     this.bind();
     return this._element;
   }
-  bind() {}
+
+  set onClick(fn) {
+    this._onClick = fn;
+  }
+  _onCommentsButtonClick() {
+    return typeof this._onClick === `function` && this._onClick();
+  }
+
+  bind() {
+    this._element.querySelector(`.film-card__comments`).addEventListener(`click`, this._onCommentsButtonClick.bind(this));
+  }
   unrender() {}
   unbind() {}
 }

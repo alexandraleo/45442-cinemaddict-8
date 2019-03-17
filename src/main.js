@@ -24,4 +24,3 @@ filterContainer.addEventListener(`click`, function (evt) {
     filteredFilms.render(cardsContainer);
   }
 });
-

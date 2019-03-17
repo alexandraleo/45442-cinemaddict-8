@@ -1,5 +1,6 @@
 import {templateCard} from './data.js';
 import {Film} from './film.js';
+import {Popup} from './popup.js';
 import getRandomNumber from './utils.js';
 
 export class Films {
@@ -7,17 +8,30 @@ export class Films {
     this._quantity = getRandomNumber(1, number);
   }
   makeArray() {
-    const filmsTemplateArray = [];
+    const templatesArray = [];
     for (let i = 0; i < this._quantity; i++) {
-      filmsTemplateArray.push(new Film(templateCard()));
+      const newCard = templateCard();
+      templatesArray.push(newCard);
     }
-    return filmsTemplateArray;
+    return templatesArray;
   }
   render(container) {
     const filmsTemplateArray = this.makeArray();
     for (let film of filmsTemplateArray) {
-      const newFilm = film.render();
+      const filmOnTemplate = new Film(film);
+      const newFilm = filmOnTemplate.render();
+      const popupTemplate = new Popup(film);
       container.appendChild(newFilm);
+
+      filmOnTemplate.onClick = () => {
+        const popupElement = popupTemplate.render();
+        document.body.appendChild(popupElement);
+      };
+
+      popupTemplate.onClick = () => {
+        document.querySelector(`.film-details`).remove();
+        popupTemplate.unrender();
+      };
     }
   }
 }
