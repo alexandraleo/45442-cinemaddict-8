@@ -1,7 +1,8 @@
-import createElement from './create-element.js';
+import Component from './component.js';
 
-export class Popup {
+export class Popup extends Component {
   constructor(film) {
+    super();
     this._filmTitle = film.filmTitle;
     this._poster = film.poster;
     this._rating = film.rating;
@@ -11,8 +12,6 @@ export class Popup {
     this._description = film.description;
     this._comments = film.comments;
 
-    this._element = null;
-    this._onClick = null;
     this._onCloseClick = this._onCloseClick.bind(this);
   }
   get template() {
@@ -181,11 +180,6 @@ export class Popup {
   </form>
 </section>`.trim();
   }
-  render() {
-    this._element = createElement(this.template);
-    this.bind();
-    return this._element;
-  }
 
   _onCloseClick() {
     return typeof this._onClick === `function` && this._onClick();
@@ -197,9 +191,7 @@ export class Popup {
   bind() {
     this._element.querySelector(`.film-details__close-btn`).addEventListener(`click`, this._onCloseClick);
   }
-  unrender() {}
   unbind() {
     this._element.querySelector(`.film-details__close-btn`).removeEventListener(`click`, this._onCloseClick);
-
   }
 }

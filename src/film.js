@@ -1,6 +1,7 @@
-import createElement from './create-element.js';
-export class Film {
+import Component from './component.js';
+export class Film extends Component {
   constructor(data) {
+    super();
     this._filmTitle = data.filmTitle;
     this._poster = data.poster;
     this._rating = data.rating;
@@ -10,8 +11,7 @@ export class Film {
     this._description = data.description;
     this._comments = data.comments;
 
-    this._element = null;
-    this._onClick = null;
+    this._onCommentsButtonClick = this._onCommentsButtonClick.bind(this);
   }
   get template() {
     return `<article class="film-card">
@@ -33,15 +33,6 @@ export class Film {
           </form>
         </article>`.trim();
   }
-  get element() {
-    return this._element;
-  }
-  render() {
-    this._element = createElement(this.template);
-    this.bind();
-    return this._element;
-  }
-
   set onClick(fn) {
     this._onClick = fn;
   }
@@ -50,8 +41,9 @@ export class Film {
   }
 
   bind() {
-    this._element.querySelector(`.film-card__comments`).addEventListener(`click`, this._onCommentsButtonClick.bind(this));
+    this._element.querySelector(`.film-card__comments`).addEventListener(`click`, this._onCommentsButtonClick);
   }
-  unrender() {}
-  unbind() {}
+  unbind() {
+    this._element.querySelector(`.film-card__comments`).removeEventListener(`click`, this._onCommentsButtonClick);
+  }
 }
