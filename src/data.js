@@ -10,6 +10,8 @@ const anyDescription = () => {
   return descriptionArray[getRandomNumber(0, descriptionArray.length - 1)];
 };
 
+// this._comments = data.comments;
+
 export const templateCard = () => ({
   filmTitle: [
     `Roman Holiday`,
@@ -28,6 +30,42 @@ export const templateCard = () => ({
     `The Godfather`,
     `The Prestige`
   ][getRandomNumber(0, 14)],
+  originalTitle: templateCard.filmTitle,
+  director: [
+    `Peter Jackson`,
+    `Martin Scorsese`,
+    `Steven Spielberg`,
+    `David Fincher`,
+    `David Lynch`,
+    `Tim Burton`,
+    `Milos Forman`,
+    `James Cameron`,
+    `Ridley Scott`,
+    `Freddie Francis`,
+    `Marek Piestrak`,
+    `Christopher Nolan`,
+    `Danny Boyle`,
+    `Francis Ford Coppola`,
+    `George Miller`,
+    `Stanley Kubrick`,
+    `David Cronenberg`,
+  ][getRandomNumber(0, 16)],
+  writers: [
+    `Christopher Nolan`,
+    `Luc Besson`,
+    `John Hughes`,
+    `Martin Scorsese`,
+    `Stephen King`,
+    `Guy Ritchie`,
+    `Danny Boyle`,
+    `Quentin Tarantino`,
+  ][getRandomNumber(0, 7)],
+  actors: [`Stephen Graham`, `Jamie Bell`, `Sam Worthington`,
+    `Tim Robbins`, `Zach Galifianakis`, `Ed Helms`,
+    `Bradley Cooper`, `Pierce Brosnan`, `Samuel L. Jackson`,
+    `Uma Thurman`, `Hilary Swank`,
+    `Amanda Bynes`, `Mila Kunis`, `Emma Stone`,
+    `Kate Bosworth`, `Penélope Cruz`, `Sandra Bullock`, `Zooey Deschane`].slice(0, getRandomNumber(2, 5)),
   poster: [
     `accused`,
     `blackmail`,
@@ -36,10 +74,24 @@ export const templateCard = () => ({
     `moonrise`,
     `three-friends`
   ][getRandomNumber(0, 5)],
-  rating: getRandomNumber(0, 10),
-  year: getRandomNumber(1920, 2020),
+  rating: getRandomNumber(1, 9),
+  userRating: getRandomNumber(1, 9),
+  releaseDate: getRandomNumber(1920, 2020),
+  country: [`USA`, `Russian Federation`, `Canada`, `France`, `Greate Britain`, `USSR`][getRandomNumber(0, 5)],
   duration: [`1h 30min`, `2h 30 min`, `3h`][getRandomNumber(0, 2)],
-  genre: [`comedy`, `thriller`, `fantasy`, `sci-fi`, `documental`, `parody`, `drama`, `melodrama`][getRandomNumber(0, 7)],
+  genres: [`comedy`, `thriller`, `fantasy`, `sci-fi`, `documental`, `parody`, `drama`, `melodrama`].slice(0, getRandomNumber(2, 5)),
   description: anyDescription(),
-  comments: getRandomNumber(0, 25),
+  comments: new Array(getRandomNumber(1, 5)).fill().map(() => ({
+    emoji: [`sleeping`, `neutral-face`, `grinning`][getRandomNumber(0, 2)],
+    text: anyDescription(),
+    author: [`Stephen Graham`, `Jamie Bell`, `Sam Worthington`,
+      `Tim Robbins`, `Zach Galifianakis`, `Ed Helms`,
+      `Bradley Cooper`, `Pierce Brosnan`][getRandomNumber(0, 7)],
+    publishDate: Date.now() + 1 + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000,
+  })),
+  age: [`0+`, `6+`, `12+`, `16+`, `18+`][getRandomNumber(0, 4)],
+  isWatched: getRandomNumber(0, 1) === 0,
+  isFavorites: getRandomNumber(0, 1) === 0,
+  isInWatchlist: getRandomNumber(0, 1) === 0,
+
 });
