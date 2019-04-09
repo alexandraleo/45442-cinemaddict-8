@@ -88,10 +88,20 @@ export const templateCard = () => ({
       `Tim Robbins`, `Zach Galifianakis`, `Ed Helms`,
       `Bradley Cooper`, `Pierce Brosnan`][getRandomNumber(0, 7)],
     publishDate: Date.now() + 1 + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000,
+    length: getRandomNumber(1, 5),
   })),
   age: [`0+`, `6+`, `12+`, `16+`, `18+`][getRandomNumber(0, 4)],
   isWatched: getRandomNumber(0, 1) === 0,
   isFavorites: getRandomNumber(0, 1) === 0,
   isInWatchlist: getRandomNumber(0, 1) === 0,
+  // isControl: false,
 
 });
+
+export const filters = [
+  {filterName: `All movies`, href: `#`, quantity: getRandomNumber(0, 15), isActive: true},
+  {filterName: `Watchlist`, href: `#`, quantity: getRandomNumber(0, 15)},
+  {filterName: `History`, href: `#`, quantity: getRandomNumber(0, 15)},
+  {filterName: `Favorites`, href: `#`, quantity: getRandomNumber(0, 15)},
+];
+
