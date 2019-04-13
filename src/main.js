@@ -10,7 +10,7 @@ const topCommentedNode = document.querySelector(`.films-list--commented .films-l
 const filmsContainer = document.querySelector(`.films-list .films-list__container`);
 const filterContainer = document.querySelector(`.main-navigation`);
 const statButton = document.querySelector(`.main-navigation__item--additional`);
-const statContainer = document.querySelector(`.statistic`);
+// const statContainer = document.querySelector(`.statistic`);
 const mainContainer = document.querySelector(`.main`);
 
 const makeArray = (quantity) => {
