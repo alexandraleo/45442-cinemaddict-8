@@ -3,12 +3,15 @@ import {Film} from './film.js';
 import {Popup} from './popup.js';
 import getRandomNumber from './utils.js';
 import Filter from './filter.js';
+import {default as Statistics} from './statistic.js';
 
 const topRatedNode = document.querySelector(`.films-list--rated .films-list__container`);
 const topCommentedNode = document.querySelector(`.films-list--commented .films-list__container`);
 const filmsContainer = document.querySelector(`.films-list .films-list__container`);
 const filterContainer = document.querySelector(`.main-navigation`);
-// const statNode = document.querySelector(`.main-navigation__item--additional`);
+const statButton = document.querySelector(`.main-navigation__item--additional`);
+const statContainer = document.querySelector(`.statistic`);
+const mainContainer = document.querySelector(`.main`);
 
 const makeArray = (quantity) => {
   const templatesArray = [];
@@ -31,20 +34,33 @@ const renderFilters = (container) => {
     const newFilter = filterElement.render();
     container.appendChild(newFilter);
 
-    filter.onFilter = () => {
-      const filteredFilms = filterFilms(filter[0]);
-      console.log(filteredFilms.length);
+    filterElement.onFilter = () => {
+      const filteredFilms = filterFilms(filter.filterName);
+      // console.log(filteredFilms.length);
       renderFilms(filmsContainer, filteredFilms);
     };
   }
 };
 
+const filterFilms = (filterName) => {
+  switch (filterName) {
+    case `All movies`:
+      return filmsTemplateArray;
+    case `History`:
+      return filmsTemplateArray.filter((item) => item.isWatched);
+    case `Watchlist`:
+      return filmsTemplateArray.filter((item) => item.isInWatchlist);
+    default:
+      return filmsTemplateArray;
+  }
+};
 
 const quantity = (number) => getRandomNumber(1, number);
 const filmsTemplateArray = makeArray(quantity(7));
 const filmsTopRated = makeArray(quantity(2));
 
 const renderFilms = (container, filmArray) => {
+  container.innerHTML = ``;
 
   for (let film of filmArray) {
     const filmElement = new Film(film);
@@ -63,7 +79,7 @@ const renderFilms = (container, filmArray) => {
       const updateCard = updateFilm(filmArray, film);
       filmElement.update(updateCard);
       // console.log(`added to watchlist`);
-      // stat
+      stat.update(filmArray);
     };
 
     filmElement.onMarkAsWatched = () => {
@@ -92,18 +108,21 @@ const renderFilms = (container, filmArray) => {
   }
 };
 
-const filterFilms = (filterName) => {
-  switch (filterName) {
-    case `History`:
-      return filmsTemplateArray.filter((item) => item.isWatched);
-    case `Watchlist`:
-      return filmsTemplateArray.filter((item) => item.isInWatchlist);
-    default:
-      return filmsTemplateArray;
-  }
+const onStatisticsClick = () => {
+  document.querySelector(`.films`).classList.toggle(`visually-hidden`);
+  stat.element.classList.toggle(`visually-hidden`);
+};
+
+const stat = new Statistics(filmsTemplateArray);
+const renderStatistics = () => {
+  stat.render();
+  mainContainer.appendChild(stat.element);
+  stat.showStatistics();
 };
 
 renderFilters(filterContainer);
 renderFilms(filmsContainer, filmsTemplateArray);
 renderFilms(topCommentedNode, filmsTopRated);
 renderFilms(topRatedNode, filmsTopRated);
+renderStatistics();
+statButton.addEventListener(`click`, onStatisticsClick);

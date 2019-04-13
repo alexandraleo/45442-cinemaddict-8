@@ -78,7 +78,7 @@ export const templateCard = () => ({
   userRating: getRandomNumber(1, 9),
   releaseDate: getRandomNumber(1920, 2020),
   country: [`USA`, `Russian Federation`, `Canada`, `France`, `Greate Britain`, `USSR`][getRandomNumber(0, 5)],
-  duration: [`1h 30min`, `2h 30 min`, `3h`][getRandomNumber(0, 2)],
+  duration: getRandomNumber(60, 180),
   genres: [`comedy`, `thriller`, `fantasy`, `sci-fi`, `documental`, `parody`, `drama`, `melodrama`].slice(0, getRandomNumber(2, 5)),
   description: anyDescription(),
   comments: new Array(getRandomNumber(1, 5)).fill().map(() => ({
