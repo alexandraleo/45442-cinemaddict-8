@@ -78,7 +78,7 @@ export const templateCard = () => ({
   userRating: getRandomNumber(1, 9),
   releaseDate: getRandomNumber(1920, 2020),
   country: [`USA`, `Russian Federation`, `Canada`, `France`, `Greate Britain`, `USSR`][getRandomNumber(0, 5)],
-  duration: [`1h 30min`, `2h 30 min`, `3h`][getRandomNumber(0, 2)],
+  duration: getRandomNumber(60, 180),
   genres: [`comedy`, `thriller`, `fantasy`, `sci-fi`, `documental`, `parody`, `drama`, `melodrama`].slice(0, getRandomNumber(2, 5)),
   description: anyDescription(),
   comments: new Array(getRandomNumber(1, 5)).fill().map(() => ({
@@ -88,10 +88,20 @@ export const templateCard = () => ({
       `Tim Robbins`, `Zach Galifianakis`, `Ed Helms`,
       `Bradley Cooper`, `Pierce Brosnan`][getRandomNumber(0, 7)],
     publishDate: Date.now() + 1 + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000,
+    length: getRandomNumber(1, 5),
   })),
   age: [`0+`, `6+`, `12+`, `16+`, `18+`][getRandomNumber(0, 4)],
   isWatched: getRandomNumber(0, 1) === 0,
   isFavorites: getRandomNumber(0, 1) === 0,
   isInWatchlist: getRandomNumber(0, 1) === 0,
+  // isControl: false,
 
 });
+
+export const filters = [
+  {filterName: `All movies`, href: `#`, quantity: getRandomNumber(0, 15), isActive: true},
+  {filterName: `Watchlist`, href: `#`, quantity: getRandomNumber(0, 15)},
+  {filterName: `History`, href: `#`, quantity: getRandomNumber(0, 15)},
+  {filterName: `Favorites`, href: `#`, quantity: getRandomNumber(0, 15)},
+];
+

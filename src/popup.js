@@ -21,7 +21,9 @@ export class Popup extends Component {
     this._comments = film.comments;
     this._age = film.age;
 
-    this._onCloseClick = this._onCloseClick.bind(this);
+    this._onSubmitClick = this._onSubmitClick.bind(this);
+
+    this._onSubmit = null;
     this._isWatched = film.isWatched;
     this._isFavorites = film.isFavorites;
     this._isInWatchList = film.isInWatchList;
@@ -201,20 +203,32 @@ export class Popup extends Component {
 </section>`.trim();
   }
 
-  _onCloseClick(evt) {
+  _onSubmitClick(evt) {
     evt.preventDefault();
-    const formData = new FormData(this._element.querySelector(`.film-details__inner`));
-    const newData = this._processData(formData);
-    if (typeof this._onClick === `function`) {
-      this._onClick(newData);
+    if (evt.keyCode === (13 && 17)) {
+      const formData = new FormData(this._element.querySelector(`.film-details__inner`));
+      const newData = this._processData(formData);
+      if (typeof this._onSubmit === `function`) {
+        this._onSubmit(newData);
+      }
+      this.update(newData);
     }
-    this.update(newData);
+  }
+
+  set onSubmit(fn) {
+    this._onSubmit = fn;
+  }
+
+  set onCloseClick(fn) {
+    this._onCloseClick = fn;
   }
 
   _processData(formData) {
     const entry = {
-      userRating: ``,
+      score: ``,
       text: ``,
+      favorite: ``,
+      watchlist: ``,
     };
     const popupMapper = Popup.createMapper(entry);
     for (const pair of formData.entries()) {
@@ -249,14 +263,15 @@ export class Popup extends Component {
     };
   }
 
-  set onClick(fn) {
-    this._onClick = fn;
-  }
   bind() {
     this._element.querySelector(`.film-details__close-btn`).addEventListener(`click`, this._onCloseClick);
+    this._element.querySelector(`.film-details__inner`).addEventListener(`keydown`, this._onSubmitClick);
+
   }
+
   unbind() {
     this._element.querySelector(`.film-details__close-btn`).removeEventListener(`click`, this._onCloseClick);
+    this._element.querySelector(`.film-details__inner`).removeEventListener(`keydown`, this._onSubmitClick);
   }
   update(film) {
     this._userRating = film.userRating;
