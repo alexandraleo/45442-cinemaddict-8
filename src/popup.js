@@ -1,5 +1,5 @@
 import Component from './component.js';
-import {Emoji} from './utils.js';
+import {Emoji} from './data.js';
 import moment from 'moment';
 
 export class Popup extends Component {
@@ -14,18 +14,19 @@ export class Popup extends Component {
     this._country = film.country;
     this._poster = film.poster;
     this._rating = film.rating;
-    this._year = film.year;
+    // this._year = film.year;
     this._duration = film.duration;
     this._genres = film.genres;
     this._description = film.description;
     this._comments = film.comments;
     this._age = film.age;
+    this._userRating = film.userRating;
 
     this._onSubmitClick = this._onSubmitClick.bind(this);
 
     this._onSubmit = null;
     this._isWatched = film.isWatched;
-    this._isFavorites = film.isFavorites;
+    this._isFavorite = film.isFavorite;
     this._isInWatchList = film.isInWatchList;
   }
 
@@ -37,8 +38,8 @@ export class Popup extends Component {
     </div>
     <div class="film-details__info-wrap">
       <div class="film-details__poster">
-        <img class="film-details__poster-img" src="images/posters/${this._poster}.jpg" alt="${this._title}">
-        <p class="film-details__age">${this._age}</p>
+        <img class="film-details__poster-img" src="${this._poster}" alt="${this._filmTitle} poster">
+        <p class="film-details__age">Age limit: ${this._age}</p>
       </div>
 
       <div class="film-details__info">
@@ -50,7 +51,7 @@ export class Popup extends Component {
 
           <div class="film-details__rating">
             <p class="film-details__total-rating">${this._rating}</p>
-            <p class="film-details__user-rating">Your rate ${this._userRating}</p>
+            <p class="film-details__user-rating">Your rate: ${this._userRating > 0 ? `(${this._userRating})` : `(-)`}</p>
           </div>
         </div>
 
@@ -61,7 +62,7 @@ export class Popup extends Component {
           </tr>
           <tr class="film-details__row">
             <td class="film-details__term">Writers</td>
-            <td class="film-details__cell">${this._writers}</td>
+            <td class="film-details__cell">${Array.from(this._writers).join(`, `)}</td>
           </tr>
           <tr class="film-details__row">
             <td class="film-details__term">Actors</td>
@@ -73,7 +74,7 @@ export class Popup extends Component {
           </tr>
           <tr class="film-details__row">
             <td class="film-details__term">Runtime</td>
-            <td class="film-details__cell">${this._duration}</td>
+            <td class="film-details__cell">${Math.round(this._duration / 60)}h ${this._duration % 60}m</td>
           </tr>
           <tr class="film-details__row">
             <td class="film-details__term">Country</td>
@@ -100,8 +101,8 @@ export class Popup extends Component {
       <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched" ${this._isWatched ? `checked` : ``}>
       <label for="watched" class="film-details__control-label film-details__control-label--watched">${this.isWatched ? `Already watched` : `Isn't watched`}</label>
 
-      <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite" ${this._isFavorites ? `checked` : ``}>
-      <label for="favorite" class="film-details__control-label film-details__control-label--favorite">${this._isFavorites ? `In favorites` : `Add to favorites`}</label>
+      <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite" ${this._isFavorite ? `checked` : ``}>
+      <label for="favorite" class="film-details__control-label film-details__control-label--favorite">${this._isFavorite ? `In favorites` : `Add to favorites`}</label>
     </section>
 
     <section class="film-details__comments-wrap">
@@ -109,12 +110,12 @@ export class Popup extends Component {
 
       <ul class="film-details__comments-list">
       ${Array.from(this._comments).map((comment) => (`<li class="film-details__comment">
-          <span class="film-details__comment-emoji">${Emoji[comment.emoji]}</span>
+          <span class="film-details__comment-emoji">${Emoji[comment.emotion]}</span>
           <div>
-            <p class="film-details__comment-text">${comment.text}</p>
+            <p class="film-details__comment-text">${comment.comment}</p>
             <p class="film-details__comment-info">
               <span class="film-details__comment-author">${comment.author}</span>
-              <span class="film-details__comment-day">${moment(new Date() - comment.publishDate).format(`D`)}${moment(new Date() - comment.publishDate).format(`D`) > 1 ? ` days ago` : ` day ago`}</span>
+              <span class="film-details__comment-day">${moment(comment.date).fromNow()}</span>
             </p>
           </div>
         </li>`.trim())).join(``)}
@@ -150,7 +151,7 @@ export class Popup extends Component {
 
       <div class="film-details__user-score">
         <div class="film-details__user-rating-poster">
-          <img src="images/posters/${this._poster}.jpg" alt="film-poster" class="film-details__user-rating-img">
+          <img src="${this._poster}" alt="film-poster" class="film-details__user-rating-img">
         </div>
 
         <section class="film-details__user-rating-inner">

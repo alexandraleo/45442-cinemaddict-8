@@ -1,26 +1,29 @@
-import {templateCard, filters} from './data.js';
+import {filters} from './data.js';
 import {Film} from './film.js';
 import {Popup} from './popup.js';
-import getRandomNumber from './utils.js';
 import Filter from './filter.js';
 import {default as Statistics} from './statistic.js';
+import {API} from './api.js';
+
+const AUTHORIZATION = `Basic eo0w590ik29889a`;
+const END_POINT = `https://es8-demo-srv.appspot.com/moowle/`;
+const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
 const topRatedNode = document.querySelector(`.films-list--rated .films-list__container`);
 const topCommentedNode = document.querySelector(`.films-list--commented .films-list__container`);
 const filmsContainer = document.querySelector(`.films-list .films-list__container`);
 const filterContainer = document.querySelector(`.main-navigation`);
 const statButton = document.querySelector(`.main-navigation__item--additional`);
-// const statContainer = document.querySelector(`.statistic`);
 const mainContainer = document.querySelector(`.main`);
 
-const makeArray = (quantity) => {
-  const templatesArray = [];
-  for (let i = 0; i < quantity; i++) {
-    const newCard = templateCard();
-    templatesArray.push(newCard);
-  }
-  return templatesArray;
-};
+// const makeArray = (quantity) => {
+//   const templatesArray = [];
+//   for (let i = 0; i < quantity; i++) {
+//     const newCard = templateCard();
+//     templatesArray.push(newCard);
+//   }
+//   return templatesArray;
+// };
 
 const updateFilm = (films, filmToUpdate, newData) => {
   const index = films.findIndex((item) => item === filmToUpdate);
@@ -28,36 +31,38 @@ const updateFilm = (films, filmToUpdate, newData) => {
   return films[index];
 };
 
-const renderFilters = (container) => {
+const renderFilters = (container, filmsArray) => {
   for (let filter of filters) {
     const filterElement = new Filter(filter);
     const newFilter = filterElement.render();
     container.appendChild(newFilter);
 
     filterElement.onFilter = () => {
-      const filteredFilms = filterFilms(filter.filterName);
+      const filteredFilms = filterFilms(filter.filterName, filmsArray);
       // console.log(filteredFilms.length);
       renderFilms(filmsContainer, filteredFilms);
     };
   }
 };
 
-const filterFilms = (filterName) => {
+const filterFilms = (filterName, filmsArray) => {
   switch (filterName) {
     case `All movies`:
-      return filmsTemplateArray;
+      return filmsArray;
     case `History`:
-      return filmsTemplateArray.filter((item) => item.isWatched);
+      return filmsArray.filter((item) => item.isWatched);
     case `Watchlist`:
-      return filmsTemplateArray.filter((item) => item.isInWatchlist);
+      return filmsArray.filter((item) => item.isInWatchlist);
+    case `Favorites`:
+      return filmsArray.filter((item) => item.isFavorite);
     default:
-      return filmsTemplateArray;
+      return filmsArray;
   }
 };
 
-const quantity = (number) => getRandomNumber(1, number);
-const filmsTemplateArray = makeArray(quantity(7));
-const filmsTopRated = makeArray(quantity(2));
+// const quantity = (number) => getRandomNumber(1, number);
+// const filmsTemplateArray = makeArray(quantity(7));
+// const filmsTopRated = makeArray(quantity(2));
 
 const renderFilms = (container, filmArray) => {
   container.innerHTML = ``;
@@ -90,6 +95,14 @@ const renderFilms = (container, filmArray) => {
       // stat
     };
 
+    filmElement.onMarkFavorite = () => {
+      film.isFavorite = !film.isFavorite;
+      const updateCard = updateFilm(filmArray, film);
+      filmElement.update(updateCard);
+      // console.log(`marked as watched`);
+      // stat
+    };
+
     popupTemplate.onCloseClick = () => {
       popupTemplate.unrender();
       filmElement.bind();
@@ -113,16 +126,23 @@ const onStatisticsClick = () => {
   stat.element.classList.toggle(`visually-hidden`);
 };
 
-const stat = new Statistics(filmsTemplateArray);
-const renderStatistics = () => {
+const renderStatistics = (data) => {
+  const stat = new Statistics(data);
   stat.render();
   mainContainer.appendChild(stat.element);
   stat.showStatistics();
 };
 
-renderFilters(filterContainer);
-renderFilms(filmsContainer, filmsTemplateArray);
-renderFilms(topCommentedNode, filmsTopRated);
-renderFilms(topRatedNode, filmsTopRated);
-renderStatistics();
+// renderFilms(filmsContainer, filmsTemplateArray);
+// renderFilms(topCommentedNode, filmsTopRated);
+// renderFilms(topRatedNode, filmsTopRated);
+// renderStatistics();
 statButton.addEventListener(`click`, onStatisticsClick);
+
+api.getFilms()
+.then((films) => {
+  console.log(films);
+  renderFilms(filmsContainer, films);
+  renderStatistics(films);
+  renderFilters(filterContainer, films);
+});

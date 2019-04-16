@@ -105,3 +105,8 @@ export const filters = [
   {filterName: `Favorites`, href: `#`, quantity: getRandomNumber(0, 15)},
 ];
 
+export const Emoji = {
+  'sleeping': `😴`,
+  'neutral-face': `😐`,
+  'grinning': `😀`,
+};
