@@ -10,7 +10,7 @@ export default class Statistics extends Component {
   }
   get template() {
     return `<section class="statistic visually-hidden">
-    <p class="statistic__rank">Your rank <span class="statistic__rank-label">Sci-Fighter</span></p>
+    <p class="statistic__rank">Your rank <span class="statistic__rank-label">${this._giveRank()}</span></p>
 
     <form action="https://echo.htmlacademy.ru/" method="get" class="statistic__filters visually-hidden">
       <p class="statistic__filters-description">Show stats:</p>
@@ -91,11 +91,17 @@ export default class Statistics extends Component {
     });
     return sortedGenres;
   }
-  // _giveRank() {}
-  //   switch(this.)
-  // bind() {
-  //   this._element.querySelector(`.main-navigation__item--additional`).addEventListener(`click`, this._onStatisticsClick);
-  // }
+
+  _giveRank() {
+    switch(this._isWatched) {
+      case this._isWatched > 1 && this._isWatched <= 10: return `novice`;
+      case this._isWatched > 10 && this._isWatched <= 20: return `fan`;
+      case this._isWatched > 20: return `movie buff`;
+      default: return `Let's find out!`;
+    }
+  }
+
+
 
   showStatistics() {
     const sortedGenres = this._genresRange();

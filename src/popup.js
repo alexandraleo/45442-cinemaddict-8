@@ -14,7 +14,6 @@ export class Popup extends Component {
     this._country = film.country;
     this._poster = film.poster;
     this._rating = film.rating;
-    // this._year = film.year;
     this._duration = film.duration;
     this._genres = film.genres;
     this._description = film.description;
@@ -74,7 +73,7 @@ export class Popup extends Component {
           </tr>
           <tr class="film-details__row">
             <td class="film-details__term">Runtime</td>
-            <td class="film-details__cell">${Math.round(this._duration / 60)}h ${this._duration % 60}m</td>
+            <td class="film-details__cell">${this._duration}m</td>
           </tr>
           <tr class="film-details__row">
             <td class="film-details__term">Country</td>
@@ -266,6 +265,7 @@ export class Popup extends Component {
 
   bind() {
     this._element.querySelector(`.film-details__close-btn`).addEventListener(`click`, this._onCloseClick);
+    // this._element.querySelector(`.film-details__close-btn`).addEventListener(`keydown`, this._onCloseClick); Esc evt
     this._element.querySelector(`.film-details__inner`).addEventListener(`keydown`, this._onSubmitClick);
 
   }
