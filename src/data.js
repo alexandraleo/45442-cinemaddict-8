@@ -105,8 +105,11 @@ export const filters = [
   {filterName: `Favorites`, href: `#`, quantity: getRandomNumber(0, 15)},
 ];
 
-export const Emoji = {
+export const Emoji = { // to.lower case?
   'sleeping': `😴`,
   'neutral-face': `😐`,
   'grinning': `😀`,
 };
+
+export const MAIN_FILMS_QUANTITY = 5;
+export const TOP_FILMS_QUANTITY = 2;

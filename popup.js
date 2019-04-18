@@ -21,12 +21,129 @@ export class Popup extends Component {
     this._age = film.age;
     this._userRating = film.userRating;
 
-    this._onSubmitClick = this._onSubmitClick.bind(this);
-
-    this._onSubmit = null;
     this._isWatched = film.isWatched;
     this._isFavorite = film.isFavorite;
     this._isInWatchList = film.isInWatchList;
+
+    this._onSubmit = null;
+    this._onEscape = null;
+    this._emojiIsChosen = false;
+
+    this._onSubmitClick = this._onSubmitClick.bind(this);
+    this._onCloseUpdate = this._onCloseUpdate.bind(this);
+    this._onEscKeydown = this._onEscKeydown.bind(this);
+    this._onChooseEmoji = this._onChooseEmoji.bind(this);
+    this._onChooseRating = this._onChooseRating.bind(this);
+  }
+  // _onSubmitClick(evt) {
+  //   evt.preventDefault();
+  //   if (evt.keyCode === (13 && 17)) {
+  //     const formData = new FormData(this._element.querySelector(`.film-details__inner`));
+  //     const newData = this._processData(formData);
+  //     if (typeof this._onSubmit === `function`) {
+  //       this._onSubmit(newData);
+  //     }
+  //     this.update(newData);
+  //   }
+  // }
+
+  _onSubmitClick(evt) {
+    evt.preventDefault();
+    if (evt.keyCode === (13 && 17 && typeof this._onSubmit === `function`) {
+        this._onUpdateData(this._onSubmit);
+      }
+    }
+  }
+
+  _onUpdateData(fn) {
+    const formData = new FormData(this._element.querySelector(`.film-details__inner`));
+    const newData = this._processData(formData);
+    if (typeof fn === `function`) {
+      fn(newData);
+    }
+    // this.update(newData);
+  }
+
+  _onEscKeydown(evt) {
+    if(evt.code === `Escape` && typeof this._onEscape === `function`) {
+      this._onEscape();
+    }
+   }
+
+   _onChooseRating(evt) {
+    this._chosenRating = evt.target.textContent;
+    this._onUpdateData(this._onRate);
+   }
+
+   _onChooseEmoji(evt) {
+    this._element.querySelector(`.film-detail__add-emoji-label`).textContent = evt.target.textContent;
+    this._emojiIsChosen = !this._emojiIsChosen;
+   }
+
+   _onCloseUpdate() {
+    this._onUpdateData(this._onCloseClick);
+   }
+
+  set onSubmit(fn) {
+    this._onSubmit = fn;
+  }
+
+  set onCloseClick(fn) {
+    this._onCloseClick = fn;
+  }
+
+  set onEscKeydown(fn) {
+  this._onEscKeydown = fn;
+  }
+
+  set onRate(fn) {
+    this._onRate = fn;
+  }
+
+  _processData(formData) {
+    const entry = {
+      userRating: ``,
+      comment: {
+        author: `Movie buff`,
+        date: Date.now(),
+        emotion: ``,
+        comment: ``,
+      }
+      isFavorite: false,
+      isWatched: false,
+      isInWatchList: false,
+    };
+    const popupMapper = Popup.createMapper(entry);
+    for (const pair of formData.entries()) {
+      const [property, value] = pair;
+      if (popupMapper[property]) {
+        popupMapper[property](value);
+      }
+    }
+    return entry;
+  }
+
+  static createMapper(target) {
+    return {
+      score: (value) => {
+        target.userRating = value;
+      },
+      watched: (value) => {
+        target.isWatched = true;
+      },
+      favorite: (value) => {
+        target.isFavorite = true;
+      },
+      watchlist: (value) => {
+        target.isInWatchList = true;
+      },
+      comment: (value) => {
+        target.comment.comment = value;
+      },
+      commentEmoji: (value) => {
+        target.comment.emotion = value;
+      },
+    };
   }
 
   get template() {
@@ -203,81 +320,29 @@ export class Popup extends Component {
 </section>`.trim();
   }
 
-  _onSubmitClick(evt) {
-    evt.preventDefault();
-    if (evt.keyCode === (13 && 17)) {
-      const formData = new FormData(this._element.querySelector(`.film-details__inner`));
-      const newData = this._processData(formData);
-      if (typeof this._onSubmit === `function`) {
-        this._onSubmit(newData);
-      }
-      this.update(newData);
-    }
-  }
-
-  set onSubmit(fn) {
-    this._onSubmit = fn;
-  }
-
-  set onCloseClick(fn) {
-    this._onCloseClick = fn;
-  }
-
-  _processData(formData) {
-    const entry = {
-      score: ``,
-      text: ``,
-      favorite: ``,
-      watchlist: ``,
-    };
-    const popupMapper = Popup.createMapper(entry);
-    for (const pair of formData.entries()) {
-      const [property, value] = pair;
-      if (popupMapper[property]) {
-        popupMapper[property](value);
-      }
-    }
-    return entry;
-  }
-
-  static createMapper(target) {
-    return {
-      score: (value) => {
-        target.userRating = value;
-      },
-      watched: (value) => {
-        target.isWatched = (value === `on`);
-      },
-      favorite: (value) => {
-        target.isFavorites = (value === `on`);
-      },
-      watchlist: (value) => {
-        target.isInWatchList = (value === `on`);
-      },
-      comment: (value) => {
-        target.commentText = value;
-      },
-      commentEmoji: (value) => {
-        target.commentEmoji = value;
-      },
-    };
-  }
-
   bind() {
-    this._element.querySelector(`.film-details__close-btn`).addEventListener(`click`, this._onCloseClick);
-    // this._element.querySelector(`.film-details__close-btn`).addEventListener(`keydown`, this._onCloseClick); Esc evt
-    this._element.querySelector(`.film-details__inner`).addEventListener(`keydown`, this._onSubmitClick);
+    this._element.querySelector(`.film-details__close-btn`).addEventListener(`click`, this._onCloseUpdate);
+    this._element.querySelector(`.film-details__user-rating-score`).addEventListener(`click`, this._onChooseRating);
+    this._element.querySelector(`.film-details__user-rating-score`).addEventListener(`click`, this._onChooseRating);
+    
+    document.body.addEventListener(`keydown`, this._onEscKeydown);
+    document.body.addEventListener(`keydown`, this._onSubmitClick);
+
 
   }
 
   unbind() {
     this._element.querySelector(`.film-details__close-btn`).removeEventListener(`click`, this._onCloseClick);
-    this._element.querySelector(`.film-details__inner`).removeEventListener(`keydown`, this._onSubmitClick);
+    this._element.querySelector(`.film-details__user-rating-score`).removeEventListener(`click`, this._onChooseRating);
+
+    document.body.removeEventListener(`keydown`, this._onEscKeydown);
+    document.body.removeEventListener(`keydown`, this._onSubmitClick);
   }
+
   update(film) {
     this._userRating = film.userRating;
     this._comments = film.comments;
-    this._isFavorites = film.isFavorites;
+    this._isFavorite = film.isFavorite;
     this._isWatched = film.isWatched;
     this._isInWatchList = film.isInWatchList;
   }
