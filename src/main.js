@@ -5,15 +5,14 @@ import Filter from './filter.js';
 import {default as Statistics} from './statistic.js';
 import {API} from './api.js';
 
-const AUTHORIZATION = `Basic eo0w590ik29889a`;
+const AUTHORIZATION = `Basic eo0w590ik29889a${Math.random()}`;
 const END_POINT = `https://es8-demo-srv.appspot.com/moowle/`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
-// const topRatedNode = document.querySelector(`.films-list--rated .films-list__container`);
-// const topCommentedNode = document.querySelector(`.films-list--commented .films-list__container`);
+const topRatedNode = document.querySelector(`.films-list--rated .films-list__container`);
+const topCommentedNode = document.querySelector(`.films-list--commented .films-list__container`);
 const filmsContainer = document.querySelector(`.films-list .films-list__container`);
 const filterContainer = document.querySelector(`.main-navigation`);
-const statButton = document.querySelector(`.main-navigation__item--additional`);
 const showMoreButton = document.querySelector(`.films-list__show-more`);
 const mainContainer = document.querySelector(`.main`);
 const hiddenFilms = filmsContainer.querySelectorAll(`.film-card.visually-hidden`);
@@ -37,6 +36,7 @@ const renderFilters = (container, filmsArray) => {
       renderFilms(filmsContainer, filteredFilms);
     };
   }
+  document.querySelector(`.main-navigation__item--additional`).addEventListener(`click`, onStatisticsClick);
 };
 
 const filterFilms = (filterName, filmsArray) => {
@@ -46,12 +46,17 @@ const filterFilms = (filterName, filmsArray) => {
     case `History`:
       return filmsArray.filter((item) => item.isWatched);
     case `Watchlist`:
-      return filmsArray.filter((item) => item.isInWatchlist);
+      return filmsArray.filter((item) => item.isInWatchList);
     case `Favorites`:
       return filmsArray.filter((item) => item.isFavorite);
     default:
       return filmsArray;
   }
+};
+// const hiddenFilmsQuantity = () => filmsContainer.querySelectorAll(`.film-card.visually-hidden`).length;
+
+const showMoreBehavior = () => {
+  return hiddenFilms === 0 ? showMoreButton.classList.add(`visually-hidden`) : showMoreButton.classList.remove(`visually-hidden`);
 };
 
 const hideFilms = () => {
@@ -59,22 +64,14 @@ const hideFilms = () => {
   filmsToHide.forEach((film, index) => {
     return index >= MAIN_FILMS_QUANTITY && film.classList.add(`visually-hidden`);
   });
-}
+};
 
 const onShowMoreButtonClick = () => {
-  for (let i = 0; i < hiddenFilms.length && i < MAIN_FILMS_QUANTITY; i++) {
+  for (let i = 0; i < hiddenFilms && i < MAIN_FILMS_QUANTITY; i++) {
     hiddenFilms[i].classList.remove(`visually-hidden`);
   }
   showMoreBehavior();
 };
-
-const findTopFilms = (filmsArray, property) => {
-  return filmsArray.slice().sort((a, b) => Number(b.property) - Number(a.property)).slice(0, TOP_FILMS_QUANTITY);
-};
-
-const showMoreBehavior = () => {
-  return hiddenFilms.length === 0 ? showMoreButton.classList.add(`visually-hidden`) : showMoreButton.classList.remove(`visually-hidden`);
-}
 
 const renderFilms = (container, filmArray) => {
   container.innerHTML = ``;
@@ -90,7 +87,7 @@ const renderFilms = (container, filmArray) => {
       const popupElement = popupTemplate.render();
       document.body.appendChild(popupElement);
 
-      popupTemplate.onCloseClick = () => {
+      popupTemplate.onCloseUpdate = () => {
         popupTemplate.unrender();
         filmElement.bind();
       };
@@ -102,7 +99,7 @@ const renderFilms = (container, filmArray) => {
         filmElement.render();
         container.replaceChild(filmElement.element, oldFilm);
         document.body.removeChild(popupTemplate.element);
-        popupTemplate.unrender();
+        // popupTemplate.unrender();
         // console.log(`on submit`);
       };
     };
@@ -131,11 +128,13 @@ const renderFilms = (container, filmArray) => {
       // stat
     };
   }
+  hideFilms();
+  document.querySelector(`.films-list__show-more`).addEventListener(`click`, onShowMoreButtonClick);
 };
 
 const onStatisticsClick = () => {
   document.querySelector(`.films`).classList.toggle(`visually-hidden`);
-  stat.element.classList.toggle(`visually-hidden`);
+  document.querySelector(`.statistic`).classList.toggle(`visually-hidden`);
 };
 
 const renderStatistics = (data) => {
@@ -150,17 +149,22 @@ const showFooterStatistics = () => {
   footerStatNode.textContent = `${filmsQuantity} movie${filmsQuantity > 1 ? `s` : ``} inside`;
 };
 
-const topRated = findTopFilms(films, rating);
-const topCommented = findTopFilms(films, comments.length);
+const findTopRated = (filmsArray) => {
+  return filmsArray.slice().sort((a, b) => Number(b.rating) - Number(a.rating)).slice(0, TOP_FILMS_QUANTITY);
+};
+
+const findTopCommented = (filmsArray) => {
+  return filmsArray.slice().sort((a, b) => Number(b.comments.length) - Number(a.comments.length)).slice(0, TOP_FILMS_QUANTITY);
+};
 
 api.getFilms()
 .then((films) => {
-  // console.log(films);
+  console.log(films);
   renderFilms(filmsContainer, films);
-  renderFilms(topRatedNode, topRated);
-  renderFilms(topCommentedNode, topCommented);
+  renderFilms(topRatedNode, findTopRated(films));
+  renderFilms(topCommentedNode, findTopCommented(films));
   // renderFilms();
   renderStatistics(films);
   renderFilters(filterContainer, films);
+  showFooterStatistics();
 });
-statButton.addEventListener(`click`, onStatisticsClick);

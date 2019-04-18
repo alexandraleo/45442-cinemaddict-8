@@ -103,6 +103,8 @@ export const filters = [
   {filterName: `Watchlist`, href: `#`, quantity: getRandomNumber(0, 15)},
   {filterName: `History`, href: `#`, quantity: getRandomNumber(0, 15)},
   {filterName: `Favorites`, href: `#`, quantity: getRandomNumber(0, 15)},
+  {filterName: `Stats`, href: `#`, quantity: ``},
+
 ];
 
 export const Emoji = { // to.lower case?

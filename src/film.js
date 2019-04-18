@@ -92,7 +92,7 @@ export class Film extends Component {
   update(film) {
     this._userRating = film.userRating;
     this._comments = film.comments;
-    this._isFavorites = film.isFavorites;
+    this._isFavorite = film.isFavorite;
     this._isWatched = film.isWatched;
     this._isInWatchList = film.isInWatchList;
   }

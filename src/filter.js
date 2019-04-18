@@ -18,8 +18,9 @@ export default class Filter extends Component {
   }
 
   get template() {
-    return `<a href="#${this._filterName.toLowerCase()}" class="main-navigation__item ${this._isActive ? `main-navigation__item--active` : ``}">${this._filterName} <span class="main-navigation__item-count">${this._quantity}</span></a>`;
-
+    return `<a href="#${this._filterName.toLowerCase()}" class="main-navigation__item
+    ${this._isActive ? `main-navigation__item--active` : ``} ${this._filterName === `Stats` ? `main-navigation__item--additional` : ``}">${this._filterName}
+    ${this._filterName === `Stats` ? `` : `<span class="main-navigation__item-count">${this._quantity}</span>`}</a >`;
   }
   bind() {
     this._element.addEventListener(`click`, this._onFilterClick);

@@ -5,12 +5,12 @@ import Component from './component.js';
 export default class Statistics extends Component {
   constructor(filmArray) {
     super();
-    this._isWatched = filmArray.filter((it) => it.isWatched);
+    this._watchedFilms = filmArray.filter((it) => it.isWatched);
     this._onStatisticsClick = this._onStatisticsClick.bind(this);
   }
   get template() {
     return `<section class="statistic visually-hidden">
-    <p class="statistic__rank">Your rank <span class="statistic__rank-label">${this._giveRank()}</span></p>
+    <p class="statistic__rank">Your rank: <span class="statistic__rank-label">${this._giveRank()}</span></p>
 
     <form action="https://echo.htmlacademy.ru/" method="get" class="statistic__filters visually-hidden">
       <p class="statistic__filters-description">Show stats:</p>
@@ -39,7 +39,7 @@ export default class Statistics extends Component {
     <ul class="statistic__text-list">
       <li class="statistic__text-item">
         <h4 class="statistic__item-title">You watched</h4>
-        <p class="statistic__item-text">${this._isWatched.length}<span class="statistic__item-description">movie${this._isWatched.length <= 1 ? `` : `s`}</span></p>
+        <p class="statistic__item-text">${this._watchedFilms.length}<span class="statistic__item-description">movie${this._watchedFilms.length <= 1 ? `` : `s`}</span></p>
       </li>
       <li class="statistic__text-item">
         <h4 class="statistic__item-title">Total duration</h4>
@@ -63,7 +63,7 @@ export default class Statistics extends Component {
   }
 
   _totalDuration() {
-    return this._isWatched.reduce((acc, item) => acc + item.duration, 0);
+    return this._watchedFilms.reduce((acc, item) => acc + item.duration, 0);
   }
 
   _onStatisticsClick() {
@@ -71,7 +71,7 @@ export default class Statistics extends Component {
   }
   _genresRange() {
     const genres = {};
-    for (let film of this._isWatched) {
+    for (let film of this._watchedFilms) {
       for (let genre of film.genres) {
         if (genres[genre] === undefined) {
           genres[genre] = 1;
@@ -93,22 +93,20 @@ export default class Statistics extends Component {
   }
 
   _giveRank() {
-    switch(this._isWatched) {
-      case this._isWatched > 1 && this._isWatched <= 10: return `novice`;
-      case this._isWatched > 10 && this._isWatched <= 20: return `fan`;
-      case this._isWatched > 20: return `movie buff`;
-      default: return `Let's find out!`;
+    if (this._watchedFilms.length >= 0 && this._watchedFilms.length <= 10) {
+      return `novice`;
+    } else if (this._watchedFilms.length > 10 && this._watchedFilms.length <= 20) {
+      return `fan`;
+    } else {
+      return `movie buff`;
     }
   }
-
-
 
   showStatistics() {
     const sortedGenres = this._genresRange();
     const statisticCtx = document.querySelector(`.statistic__chart`);
-    // Обязательно рассчитайте высоту canvas, она зависит от количества элементов диаграммы
     const BAR_HEIGHT = 50;
-    statisticCtx.height = BAR_HEIGHT * 5;
+    statisticCtx.height = BAR_HEIGHT * sortedGenres.length;
     const myChart = new Chart(statisticCtx, {
       plugins: [ChartDataLabels],
       type: `horizontalBar`,
