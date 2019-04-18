@@ -9,8 +9,8 @@ const AUTHORIZATION = `Basic eo0w590ik29889a`;
 const END_POINT = `https://es8-demo-srv.appspot.com/moowle/`;
 const api = new API({endPoint: END_POINT, authorization: AUTHORIZATION});
 
-const topRatedNode = document.querySelector(`.films-list--rated .films-list__container`);
-const topCommentedNode = document.querySelector(`.films-list--commented .films-list__container`);
+// const topRatedNode = document.querySelector(`.films-list--rated .films-list__container`);
+// const topCommentedNode = document.querySelector(`.films-list--commented .films-list__container`);
 const filmsContainer = document.querySelector(`.films-list .films-list__container`);
 const filterContainer = document.querySelector(`.main-navigation`);
 const statButton = document.querySelector(`.main-navigation__item--additional`);
@@ -141,7 +141,7 @@ statButton.addEventListener(`click`, onStatisticsClick);
 
 api.getFilms()
 .then((films) => {
-  console.log(films);
+  // console.log(films);
   renderFilms(filmsContainer, films);
   renderStatistics(films);
   renderFilters(filterContainer, films);

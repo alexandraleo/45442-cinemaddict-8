@@ -14,7 +14,6 @@ export class Popup extends Component {
     this._country = film.country;
     this._poster = film.poster;
     this._rating = film.rating;
-    // this._year = film.year;
     this._duration = film.duration;
     this._genres = film.genres;
     this._description = film.description;
