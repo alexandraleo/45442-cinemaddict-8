@@ -73,6 +73,14 @@ const onShowMoreButtonClick = () => {
   showMoreBehavior();
 };
 
+const updateByApi = (data) = {
+  api.updateFilm({id: data.id, data: data.toRAW()})
+  .then((newFilmData) => {
+    filmElement.update(newFilmData);
+    popupElement.update(newFilmData);
+  }).catch(() => popupElement.shake());
+}
+
 const renderFilms = (container, filmArray) => {
   container.innerHTML = ``;
 
@@ -80,56 +88,123 @@ const renderFilms = (container, filmArray) => {
     const filmElement = new Film(film);
     const newFilm = filmElement.render();
 
-    container.appendChild(newFilm);
-
     filmElement.onClick = () => {
       const popupTemplate = new Popup(film);
       const popupElement = popupTemplate.render();
       document.body.appendChild(popupElement);
 
-      popupTemplate.onCloseUpdate = () => {
-        popupTemplate.unrender();
-        filmElement.bind();
+      popupTemplate.onCloseUpdate = (newData) => {
+        Object.assign(film, newData);
+
+        api.updateFilm({id: film.id, data: film.toRAW()})
+          .then((newFilmData) => {
+            film.update(newFilmData);
+            popupElement.update(newFilmData);
+            popupElement.unrender();
+            // update filter
+          }).catch(() => {
+            popupElement.shake();
+        });
+        // popupTemplate.unrender();
+        // filmElement.bind();
       };
 
-      popupTemplate.onSubmit = () => {
-        const updateCard = updateFilm(filmArray, film);
-        const oldFilm = filmElement.element;
-        filmElement.update(updateCard);
-        filmElement.render();
-        container.replaceChild(filmElement.element, oldFilm);
-        document.body.removeChild(popupTemplate.element);
+      popupElement.onEscKeydown = () => {
+        filmElement.update(film); // ?
+        popupElement.unrender();
+      }
+ 
+      popupTemplate.onSubmit = (newData) => {
+        const commentNode = popupTemplate._element.querySelector(`.film-details__comment-input`);
+        commentNode.disabled = true;
+        commentNode.style.border = null;
+
+        film.comments.push(newData.comment);
+        api.updateFilm({id: film.id, data: film.toRAW()})
+          .then((newFilmData) => {
+            commentNode.value = ``;
+            commentNode.disabled = false;
+            popupElement.addComment();
+            film.update(newFilmData);
+            popupElement.update(newFilmData);
+            // update filter
+          }).catch(() => {
+            popupElement.shake();
+            commentNode.style.border = `3px solid red`;
+            commentNode.disabled = false;
+        });
+        // const updateCard = updateFilm(filmArray, film);
+        // const oldFilm = filmElement.element;
+        // filmElement.update(updateCard);
+        // filmElement.render();
+        // container.replaceChild(filmElement.element, oldFilm);
+        // document.body.removeChild(popupTemplate.element);
         // popupTemplate.unrender();
         // console.log(`on submit`);
       };
+
+      popupElement.onChooseRating = (newData) => {
+        const userRatingValues = popupElement._element.querySelectorAll(`.film-details__user-rating-score`);
+        const scoreValue = popupElement._element.querySelectorAll(`.film-details__user-rating-label[for="rating-${}"]`);
+
+        const applyErrorStyle = (element) => {
+          element.classList.add(`error`);
+        }
+
+        if (scoreValue.classList.contains(`error`)) {
+          scoreValue.classList.remove(`error`);
+        }
+
+        userRatingValues.forEach((element) => {
+          element.disabled = true;
+        });
+
+        film.userRating = newData.userRating;
+
+        api.updateFilm({id: film.id, data: film.toRAW()})
+          .then((newFilmData) => {
+            userRatingValues.forEach((element) => {
+              element.disabled = false;
+            });
+            film.update(newFilmData);
+            popupElement.update(newFilmData);
+          }).catch(() => {
+            popupElement.shake();
+            userRatingValues.forEach((element) => {
+              element.disabled = false;
+            })
+          });
+        }
+      }
+      container.appendChild(newFilm);
+
     };
 
     filmElement.onAddToWatchList = () => {
       film.isInWatchlist = !film.isInWatchlist;
-      const updateCard = updateFilm(filmArray, film);
-      filmElement.update(updateCard);
-      // console.log(`added to watchlist`);
-      stat.update(filmArray);
+      updateByApi();
+      // const updateCard = updateFilm(filmArray, film);
+      // filmElement.update(updateCard);
+      // // console.log(`added to watchlist`);
+      // stat.update(filmArray);
     };
 
     filmElement.onMarkAsWatched = () => {
       film.isWatched = !film.isWatched;
-      const updateCard = updateFilm(filmArray, film);
-      filmElement.update(updateCard);
+      updateByApi();
       // console.log(`marked as watched`);
       // stat
     };
 
     filmElement.onMarkFavorite = () => {
       film.isFavorite = !film.isFavorite;
-      const updateCard = updateFilm(filmArray, film);
-      filmElement.update(updateCard);
+      updateByApi();
       // console.log(`marked as watched`);
       // stat
     };
+
+
   }
-  hideFilms();
-  document.querySelector(`.films-list__show-more`).addEventListener(`click`, onShowMoreButtonClick);
 };
 
 const onStatisticsClick = () => {
@@ -163,8 +238,10 @@ api.getFilms()
   renderFilms(filmsContainer, films);
   renderFilms(topRatedNode, findTopRated(films));
   renderFilms(topCommentedNode, findTopCommented(films));
-  // renderFilms();
+  hideFilms();
   renderStatistics(films);
   renderFilters(filterContainer, films);
   showFooterStatistics();
 });
+
+document.querySelector(`.films-list__show-more`).addEventListener(`click`, onShowMoreButtonClick);

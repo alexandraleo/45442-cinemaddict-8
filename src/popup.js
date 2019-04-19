@@ -307,7 +307,6 @@ export class Popup extends Component {
   bind() {
     this._element.querySelector(`.film-details__close-btn`).addEventListener(`click`, this._onCloseUpdate);
     this._element.querySelector(`.film-details__user-rating-score`).addEventListener(`click`, this._onChooseRating);
-    this._element.querySelector(`.film-details__user-rating-score`).addEventListener(`click`, this._onChooseRating);
     this._element.querySelectorAll(`.film-details__emoji-list > label`).forEach((it) => it.addEventListener(`click`, this._onChooseEmoji));
     document.body.addEventListener(`keydown`, this._onEscKeydown);
     document.body.addEventListener(`keydown`, this._onSubmitClick);
