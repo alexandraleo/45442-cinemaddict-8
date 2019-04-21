@@ -22,28 +22,12 @@ export class Film extends Component {
     this._isWatched = data.isWatched;
     this._isFavorite = data.isFavorite;
     this._isInWatchList = data.isInWatchList;
+    this._watchDate = data.watchDate;
     this._userComments = data.userComments;
-    this._userRating = data.userRating;
+    this._isControlled = true;
+    // this._userRating = data.userRating;
   }
-  get template() {
-    return `<article class="film-card">
-          <h3 class="film-card__title">${this._filmTitle}</h3>
-          <p class="film-card__rating">${this._rating} ${this._userRating > 0 ? `(${this._userRating})` : `(-)`}</p>
-          <p class="film-card__info">
-            <span class="film-card__year">${moment(this._releaseDate).format(`YYYY`)}</span>
-            <span class="film-card__duration">${Math.round(this._duration / 60)}h ${this._duration % 60}m</span>
-            ${Array.from(this._genres).map((genre) => (`<span class="film-card__genre">${genre}</span>`.trim())).join(``)}
-          </p>
-          <img src="${this._poster}" alt="${this._filmTitle} poster" class="film-card__poster">
-          <p class="film-card__description">${this._description}</p>
-          <button class="film-card__comments">${this._comments.length}${this._comments.length > 1 ? ` comments` : ` comment`}</button>
-          <form class="film-card__controls">
-            <button class="film-card__controls-item button film-card__controls-item--add-to-watchlist"><!--Add to watchlist--> WL</button>
-            <button class="film-card__controls-item button film-card__controls-item--mark-as-watched"><!--Mark as watched-->WTCHD</button>
-            <button class="film-card__controls-item button film-card__controls-item--favorite"><!--Mark as favorite-->FAV</button>
-          </form>
-        </article>`.trim();
-  }
+
   set onClick(fn) {
     this._onClick = fn;
   }
@@ -60,40 +44,79 @@ export class Film extends Component {
     this._onMarkAsFavorite = fn;
   }
 
+  set hasControls(isControlled = true) {
+    this._isControlled = isControlled;
+  }
+
   _onCommentsButtonClick() {
     return typeof this._onClick === `function` && this._onClick();
   }
 
   _onAddToWatchList() {
-    return typeof this._onAddToWatchList === `function` && this._onAddToWatchList();
+    if (typeof this._onAddToWatchList === `function`) {
+      this._isInWatchList = !this._isInWatchList;
+      this._onAddToWatchList(this._isInWatchList);
+    }
   }
 
   _onMarkAsWatched() {
-    return typeof this._onMarkAsWatched === `function` && this._onMarkAsWatched();
+    if (typeof this._onMarkAsWatched === `function`) {
+      this._isWatched = !this._isWatched;
+      this._watchDate = moment();
+      this._onMarkAsWatched(this._isWatched);
+    }
   }
 
   _onMarkAsFavorite() {
-    return typeof this._onMarkAsFavorite === `function` && this._onMarkAsFavorite();
+    if (typeof this._onMarkAsFavorite === `function`) {
+      this._isFavorite = !this._isFavorite;
+      this._onMarkAsFavorite(this._isFavorite);
+    }
   }
 
   bind() {
     this._element.querySelector(`.film-card__comments`).addEventListener(`click`, this._onCommentsButtonClick);
-    this._element.querySelector(`.film-card__controls-item--add-to-watchlist`).addEventListener(`click`, this._onAddToWatchList);
-    this._element.querySelector(`.film-card__controls-item--mark-as-watched`).addEventListener(`click`, this._onMarkAsWatched);
-    this._element.querySelector(`.film-card__controls-item--favorite`).addEventListener(`click`, this._onMarkAsFavorite);
+    if (this._isControlled) {
+      this._element.querySelector(`.film-card__controls-item--add-to-watchlist`).addEventListener(`click`, this._onAddToWatchList);
+      this._element.querySelector(`.film-card__controls-item--mark-as-watched`).addEventListener(`click`, this._onMarkAsWatched);
+      this._element.querySelector(`.film-card__controls-item--favorite`).addEventListener(`click`, this._onMarkAsFavorite);
+    }
   }
   unbind() {
     this._element.querySelector(`.film-card__comments`).removeEventListener(`click`, this._onCommentsButtonClick);
-    this._element.querySelector(`.film-card__controls-item--add-to-watchlist`).removeEventListener(`click`, this._onAddToWatchList);
-    this._element.querySelector(`.film-card__controls-item--mark-as-watched`).removeEventListener(`click`, this._onMarkAsWatched);
-    this._element.querySelector(`.film-card__controls-item--favorite`).removeEventListener(`click`, this._onMarkAsFavorite);
+    if (this._isControlled) {
+      this._element.querySelector(`.film-card__controls-item--add-to-watchlist`).removeEventListener(`click`, this._onAddToWatchList);
+      this._element.querySelector(`.film-card__controls-item--mark-as-watched`).removeEventListener(`click`, this._onMarkAsWatched);
+      this._element.querySelector(`.film-card__controls-item--favorite`).removeEventListener(`click`, this._onMarkAsFavorite);
+    }
   }
 
   update(film) {
-    this._userRating = film.userRating;
+    // this._userRating = film.userRating;
     this._comments = film.comments;
     this._isFavorite = film.isFavorite;
     this._isWatched = film.isWatched;
     this._isInWatchList = film.isInWatchList;
+    this._watchDate = film.watchDate;
+  }
+
+  get template() {
+    return `<article class="film-card">
+          <h3 class="film-card__title">${this._filmTitle}</h3>
+          <p class="film-card__rating">${this._rating}</p>
+          <p class="film-card__info">
+            <span class="film-card__year">${moment(this._releaseDate).format(`YYYY`)}</span>
+            <span class="film-card__duration">${Math.round(this._duration / 60)}h ${this._duration % 60}m</span>
+            ${Array.from(this._genres).map((genre) => (`<span class="film-card__genre">${genre}</span>`.trim())).join(``)}
+          </p>
+          <img src="${this._poster}" alt="${this._filmTitle} poster" class="film-card__poster">
+          <p class="film-card__description">${this._description}</p>
+          <button class="film-card__comments">${this._comments.length}${this._comments.length > 1 ? ` comments` : ` comment`}</button>
+          ${this._isControlled ? `<form class="film-card__controls">
+            <button class="film-card__controls-item button film-card__controls-item--add-to-watchlist"><!--Add to watchlist--> WL</button>
+            <button class="film-card__controls-item button film-card__controls-item--mark-as-watched"><!--Mark as watched-->WTCHD</button>
+            <button class="film-card__controls-item button film-card__controls-item--favorite"><!--Mark as favorite-->FAV</button>
+          </form>` : ``}
+        </article>`.trim();
   }
 }

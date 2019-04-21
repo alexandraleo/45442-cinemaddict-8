@@ -20,9 +20,11 @@ export default class FilmModel {
     this.isFavorite = data.user_details[`favorite`];
     this.isInWatchList = data.user_details[`watchlist`];
     this.userComments = data.user_details[`usercomments`];
-    this.userRating = data.user_details[`personal_rating`] || `(-)`;
+    this.userRating = data.user_details[`personal_rating`];
     this.userInfo = data[`user_details`];
+    this.watchDate = new Date(data.user_details[`watching_date`]);
   }
+
   static parseFilm(data) {
     return new FilmModel(data);
   }
@@ -33,13 +35,15 @@ export default class FilmModel {
 
   toRAW() {
     return {
-      'id': this._id,
+      'id': this.id,
       'user_details': {
         'watchlist': this.isInWatchList,
-        'already_watched': this.sWatched,
-        'favorite': this._isFavorite,
+        'already_watched': this.isWatched,
+        'favorite': this.isFavorite,
+        'personal_rating': this.userRating,
+        'watching_date': this.watchDate,
       },
-      'comments': this.userComments,
+      'comments': [...this.comments.values()],
     };
   }
 }

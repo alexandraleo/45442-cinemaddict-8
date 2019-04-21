@@ -18,11 +18,11 @@ const mainContainer = document.querySelector(`.main`);
 const hiddenFilms = filmsContainer.querySelectorAll(`.film-card.visually-hidden`);
 const footerStatNode = document.querySelector(`.footer__statistics p`);
 
-const updateFilm = (films, filmToUpdate, newData) => {
-  const index = films.findIndex((item) => item === filmToUpdate);
-  films[index] = Object.assign({}, filmToUpdate, newData);
-  return films[index];
-};
+// const updateFilm = (films, filmToUpdate, newData) => {
+//   const index = films.findIndex((item) => item === filmToUpdate);
+//   films[index] = Object.assign({}, filmToUpdate, newData);
+//   return films[index];
+// };
 
 const renderFilters = (container, filmsArray) => {
   for (let filter of filters) {
@@ -55,155 +55,196 @@ const filterFilms = (filterName, filmsArray) => {
 };
 // const hiddenFilmsQuantity = () => filmsContainer.querySelectorAll(`.film-card.visually-hidden`).length;
 
-const showMoreBehavior = () => {
-  return hiddenFilms === 0 ? showMoreButton.classList.add(`visually-hidden`) : showMoreButton.classList.remove(`visually-hidden`);
+// const showMoreBehavior = () => {
+//   return hiddenFilms === 0 ? showMoreButton.classList.add(`visually-hidden`) : showMoreButton.classList.remove(`visually-hidden`);
+// };
+
+// const hideFilms = () => {
+//   const filmsToHide = filmsContainer.querySelectorAll(`.film-card`); // ?
+//   filmsToHide.forEach((film, index) => {
+//     return index >= MAIN_FILMS_QUANTITY && film.classList.add(`visually-hidden`);
+//   });
+// };
+
+// const onShowMoreButtonClick = () => {
+//   for (let i = 0; i < hiddenFilms && i < MAIN_FILMS_QUANTITY; i++) {
+//     hiddenFilms[i].classList.remove(`visually-hidden`);
+//   }
+//   showMoreBehavior();
+// };
+
+const global = {
+  activeFilter: null,
+  filmsCollection: null,
+  filteredCollection: null,
+  filmsCount: MAIN_FILMS_QUANTITY,
 };
 
-const hideFilms = () => {
-  const filmsToHide = filmsContainer.querySelectorAll(`.film-card`); // ?
-  filmsToHide.forEach((film, index) => {
-    return index >= MAIN_FILMS_QUANTITY && film.classList.add(`visually-hidden`);
-  });
+const setFilmCollection = (collection) => {
+  global.filmsCollection = collection;
+  global.filmsCount = Math.min(collection.length, MAIN_FILMS_QUANTITY);
+  global.filteredCollection = filterFilms(collection, global.activeFilter);
 };
 
-const onShowMoreButtonClick = () => {
-  for (let i = 0; i < hiddenFilms && i < MAIN_FILMS_QUANTITY; i++) {
-    hiddenFilms[i].classList.remove(`visually-hidden`);
+const renderShortenedFilmsList = (collection) => {
+  const shortenedCollection = collection.slice(0, MAIN_FILMS_QUANTITY);
+  filmsContainer.innerHTML = ``;
+  renderFilms(filmsContainer, shortenedCollection);
+  showMoreButton.classList.remove(`visually-hidden`);
+  showMoreButton.removeEventListener(`click`, onShowMoreButtonClick(collection));
+  showMoreButton.addEventListener(`click`, onShowMoreButtonClick(collection));
+
+  if (MAIN_FILMS_QUANTITY >= collection.length) {
+    showMoreButton.classList.add(`visually-hidden`);
   }
-  showMoreBehavior();
+};
+// -------------------------------------!
+const onShowMoreButtonClick = (evt) => {
+  evt.preventDefault();
+  const expandedCollection = global.filteredCollection.slice(global.filmsCount, global.filmsCount + MAIN_FILMS_QUANTITY);
+  global.filmsCount = global.filmsCount + MAIN_FILMS_QUANTITY;
+
+  renderFilms(filmsContainer, expandedCollection);
+
+  if (global.filmsCount >= global.filteredCollection.length) {
+    showMoreButton.classList.add(`visually-hidden`);
+    showMoreButton.removeEventListener(`click`, onShowMoreButtonClick);
+  }
 };
 
-const updateByApi = (data) = {
-  api.updateFilm({id: data.id, data: data.toRAW()})
-  .then((newFilmData) => {
-    filmElement.update(newFilmData);
-    popupElement.update(newFilmData);
-  }).catch(() => popupElement.shake());
-}
-
-const renderFilms = (container, filmArray) => {
+const renderFilms = (container, filmArray, hasControlls = true) => {
   container.innerHTML = ``;
 
   for (let film of filmArray) {
     const filmElement = new Film(film);
-    const newFilm = filmElement.render();
+    filmElement.hasControls = hasControlls;
+
+    const popupElement = new Popup(film);
+    container.appendChild(filmElement.render());
 
     filmElement.onClick = () => {
-      const popupTemplate = new Popup(film);
-      const popupElement = popupTemplate.render();
-      document.body.appendChild(popupElement);
+      document.body.appendChild(popupElement.render());
+    };
 
-      popupTemplate.onCloseUpdate = (newData) => {
-        Object.assign(film, newData);
+    popupElement.onCloseClick = (newData) => {
+      Object.assign(film, newData);
 
-        api.updateFilm({id: film.id, data: film.toRAW()})
-          .then((newFilmData) => {
-            film.update(newFilmData);
-            popupElement.update(newFilmData);
-            popupElement.unrender();
-            // update filter
-          }).catch(() => {
-            popupElement.shake();
+      api.updateFilm({id: film.id, data: film.toRAW()})
+        .then((newFilmData) => {
+          console.log(newFilmData);
+          filmElement.update(newFilmData);
+          popupElement.update(newFilmData);
+          popupElement.unrender();
+          // update filter
+        }).catch(() => {
+          popupElement.shake();
         });
-        // popupTemplate.unrender();
-        // filmElement.bind();
-      };
+    };
 
-      popupElement.onEscKeydown = () => {
-        filmElement.update(film); // ?
-        popupElement.unrender();
+    popupElement.onEscKeydown = (newData) => {
+      Object.assign(film, newData);
+
+      api.updateFilm({id: film.id, data: film.toRAW()})
+        .then((newFilmData) => {
+          console.log(newFilmData);
+          filmElement.update(newFilmData);
+          popupElement.update(newFilmData);
+          popupElement.unrender();
+          // update filter
+        }).catch(() => {
+          popupElement.shake();
+        });
+    };
+
+    popupElement.onSubmit = (newData) => {
+      const commentNode = popupElement._element.querySelector(`.film-details__comment-input`);
+      commentNode.disabled = true;
+      commentNode.style.border = null;
+
+      film.comments.push(newData.comment);
+      api.updateFilm({id: film.id, data: film.toRAW()})
+        .then((newFilmData) => {
+          commentNode.value = ``;
+          commentNode.disabled = false;
+          filmElement.update(newFilmData);
+          popupElement.update(newFilmData);
+          popupElement.addComment();
+          // update filter
+        }).catch(() => {
+          popupElement.shake();
+          commentNode.style.border = `3px solid red`;
+          commentNode.disabled = false;
+        });
+    };
+
+    popupElement.onChooseRating = (newData) => {
+      const userRatingValues = popupElement._element.querySelectorAll(`.film-details__user-rating-score`);
+      const scoreValue = popupElement._element.querySelectorAll(`.film-details__user-rating-label[for="rating-${popupElement.this__chosenRating}"]`);
+
+      // const applyErrorStyle = (element) => {
+      //   element.classList.add(`error`);
+      // };
+
+      if (scoreValue.classList.contains(`error`)) {
+        scoreValue.classList.remove(`error`);
       }
- 
-      popupTemplate.onSubmit = (newData) => {
-        const commentNode = popupTemplate._element.querySelector(`.film-details__comment-input`);
-        commentNode.disabled = true;
-        commentNode.style.border = null;
 
-        film.comments.push(newData.comment);
-        api.updateFilm({id: film.id, data: film.toRAW()})
-          .then((newFilmData) => {
-            commentNode.value = ``;
-            commentNode.disabled = false;
-            popupElement.addComment();
-            film.update(newFilmData);
-            popupElement.update(newFilmData);
-            // update filter
-          }).catch(() => {
-            popupElement.shake();
-            commentNode.style.border = `3px solid red`;
-            commentNode.disabled = false;
-        });
-        // const updateCard = updateFilm(filmArray, film);
-        // const oldFilm = filmElement.element;
-        // filmElement.update(updateCard);
-        // filmElement.render();
-        // container.replaceChild(filmElement.element, oldFilm);
-        // document.body.removeChild(popupTemplate.element);
-        // popupTemplate.unrender();
-        // console.log(`on submit`);
-      };
+      userRatingValues.forEach((element) => {
+        element.disabled = true;
+      });
 
-      popupElement.onChooseRating = (newData) => {
-        const userRatingValues = popupElement._element.querySelectorAll(`.film-details__user-rating-score`);
-        const scoreValue = popupElement._element.querySelectorAll(`.film-details__user-rating-label[for="rating-${}"]`);
+      film.userRating = newData.userRating;
 
-        const applyErrorStyle = (element) => {
-          element.classList.add(`error`);
-        }
-
-        if (scoreValue.classList.contains(`error`)) {
-          scoreValue.classList.remove(`error`);
-        }
-
-        userRatingValues.forEach((element) => {
-          element.disabled = true;
-        });
-
-        film.userRating = newData.userRating;
-
-        api.updateFilm({id: film.id, data: film.toRAW()})
-          .then((newFilmData) => {
-            userRatingValues.forEach((element) => {
-              element.disabled = false;
-            });
-            film.update(newFilmData);
-            popupElement.update(newFilmData);
-          }).catch(() => {
-            popupElement.shake();
-            userRatingValues.forEach((element) => {
-              element.disabled = false;
-            })
+      api.updateFilm({id: film.id, data: film.toRAW()})
+        .then((newFilmData) => {
+          userRatingValues.forEach((element) => {
+            element.disabled = false;
           });
-        }
-      }
-      container.appendChild(newFilm);
-
+          film.update(newFilmData);
+          popupElement.update(newFilmData);
+        }).catch(() => {
+          popupElement.shake();
+          userRatingValues.forEach((element) => {
+            element.disabled = false;
+          });
+        });
     };
 
     filmElement.onAddToWatchList = () => {
-      film.isInWatchlist = !film.isInWatchlist;
-      updateByApi();
+      // film.isInWatchlist = !film.isInWatchlist;
+      api.updateFilm({id: film.id, data: film.toRAW()})
+        .then((newFilmData) => {
+          console.log(newFilmData);
+          filmElement.update(newFilmData);
+          popupElement.update(newFilmData);
+        }).catch(() => popupElement.shake());
       // const updateCard = updateFilm(filmArray, film);
       // filmElement.update(updateCard);
-      // // console.log(`added to watchlist`);
+      console.log(`added to watchlist`, film.isInWatchList);
       // stat.update(filmArray);
     };
 
     filmElement.onMarkAsWatched = () => {
-      film.isWatched = !film.isWatched;
-      updateByApi();
-      // console.log(`marked as watched`);
+      // film.isWatched = !film.isWatched;
+      api.updateFilm({id: film.id, data: film.toRAW()})
+        .then((newFilmData) => {
+          filmElement.update(newFilmData);
+          popupElement.update(newFilmData);
+        }).catch(() => popupElement.shake());
+      console.log(`marked as watched`, film.isWatched);
       // stat
     };
 
-    filmElement.onMarkFavorite = () => {
-      film.isFavorite = !film.isFavorite;
-      updateByApi();
-      // console.log(`marked as watched`);
+    filmElement.onMarkAsFavorite = () => {
+      // film.isFavorite = !film.isFavorite;
+      api.updateFilm({id: film.id, data: film.toRAW()})
+        .then((newFilmData) => {
+          filmElement.update(newFilmData);
+          popupElement.update(newFilmData);
+        }).catch(() => popupElement.shake());
+      console.log(`marked as favorite`, film.isFavorite);
       // stat
     };
-
-
   }
 };
 
@@ -234,11 +275,13 @@ const findTopCommented = (filmsArray) => {
 
 api.getFilms()
 .then((films) => {
+  setFilmCollection(films);
   console.log(films);
-  renderFilms(filmsContainer, films);
-  renderFilms(topRatedNode, findTopRated(films));
-  renderFilms(topCommentedNode, findTopCommented(films));
-  hideFilms();
+  // renderFilms(filmsContainer, films);
+  renderShortenedFilmsList(films);
+  renderFilms(topRatedNode, findTopRated(films), false);
+  renderFilms(topCommentedNode, findTopCommented(films), false);
+  // hideFilms();
   renderStatistics(films);
   renderFilters(filterContainer, films);
   showFooterStatistics();

@@ -6,6 +6,7 @@ import createElement from './create-element.js';
 export class Popup extends Component {
   constructor(film) {
     super();
+    this._id = film.id;
     this._filmTitle = film.filmTitle;
     this._originalTitle = film.originalTitle;
     this._director = film.director;
@@ -25,6 +26,7 @@ export class Popup extends Component {
     this._isWatched = film.isWatched;
     this._isFavorite = film.isFavorite;
     this._isInWatchList = film.isInWatchList;
+    this._watchDate = film.watchDate;
 
     this._onSubmit = null;
     this._onEscape = null;
@@ -50,7 +52,7 @@ export class Popup extends Component {
 
   _onSubmitClick(evt) {
     evt.preventDefault();
-    if (evt.keyCode === (13 && 17 && typeof this._onSubmit === `function`)) {
+    if (evt.keyCode === (13 && 17)) {
       this._onUpdateData(this._onSubmit);
     }
   }
@@ -65,23 +67,39 @@ export class Popup extends Component {
   }
 
   _onEscKeydown(evt) {
-    if (evt.code === `Escape` && typeof this._onEscape === `function`) {
+    if (evt.keyCode === 27 && typeof this._onEscape === `function`) {
       this._onEscape();
     }
   }
 
   _onChooseRating(evt) {
+    // evt.preventDefault();
+    // this._chosenRating = evt.target.textContent;
+    // this._onUpdateData(this._onRate);
+    const youFormRaiting = this._element.querySelector(`.film-details__user-rating`);
+    evt.target.control.checked = true;
     this._chosenRating = evt.target.textContent;
+    youFormRaiting.textContent = `Your rate ${this._chosenRating}`;
     this._onUpdateData(this._onRate);
   }
 
   _onChooseEmoji(evt) {
-    this._element.querySelector(`.film-detail__add-emoji-label`).textContent = evt.target.textContent;
+    const emojiLabel = document.querySelectorAll(`.film-detail__add-emoji-label`);
+    emojiLabel.textContent = evt.target.textContent;
+    console.log(emojiLabel.textContent);
     this._emojiIsChosen = !this._emojiIsChosen;
   }
 
   _onCloseUpdate() {
     this._onUpdateData(this._onCloseClick);
+  }
+
+  _onMarkAsWatched() {
+    if (typeof this._onMarkAsWatched === `function`) {
+      this._isWatched = !this._isWatched;
+      this._watchDate = moment();
+      this._onMarkAsWatched(this._isWatched);
+    }
   }
 
   set onSubmit(fn) {
@@ -93,11 +111,23 @@ export class Popup extends Component {
   }
 
   set onEscKeydown(fn) {
-    this._onEscKeydown = fn;
+    this._onEscape = fn;
   }
 
   set onRate(fn) {
     this._onRate = fn;
+  }
+
+  set onAddToWatchList(fn) {
+    this._onAddToWatchList = fn;
+  }
+
+  set onMarkAsWatched(fn) {
+    this._onMarkAsWatched = fn;
+  }
+
+  set onMarkAsFavorite(fn) {
+    this._onMarkAsFavorite = fn;
   }
 
   _processData(formData) {
@@ -144,6 +174,86 @@ export class Popup extends Component {
         target.comment.emotion = value;
       },
     };
+  }
+
+  addComment() {
+    // const commentsNode = this._element.querySelector(`.film-details__comments-list`);
+    // const commentData = this._newData.comment;
+    // const commentTemplate = `< li class="film-details__comment" >
+    //       <span class="film-details__comment-emoji">${Emoji[commentData.emotion]}</span>
+    //       <div>
+    //         <p class="film-details__comment-text">${commentData.comment}</p>
+    //         <p class="film-details__comment-info">
+    //           <span class="film-details__comment-author">${commentData.author}</span>
+    //           <span class="film-details__comment-day">${moment(commentData.date).fromNow()}</span>
+    //         </p>
+    //       </div>
+    //     </li >`;
+    // commentsNode.appendChild(createElement(commentTemplate));
+
+    this._commentsBlock = this._element.querySelector(`.film-details__comments-list`);
+    this._commentCount = this._element.querySelector(`.film-details__comments-count`);
+    this._commentStatus = this._element.querySelector(`.film-details__watched-status`);
+    this._commentReset = this._element.querySelector(`.film-details__watched-reset`);
+    const commentData = this._newData.comment;
+    let emotion = null;
+    switch (commentData.emotion) {
+      case `sleeping`:
+        emotion = `😴`;
+        break;
+      case `grinning`:
+        emotion = `😀`;
+        break;
+      default:
+        emotion = `😐`;
+    }
+    const commentTemplate = `<li class="film-details__comment">
+    <span class="film-details__comment-emoji">${emotion}</span>
+    <div>
+      <p class="film-details__comment-text">${commentData.comment}</p>
+      <p class="film-details__comment-info">
+        <span class="film-details__comment-author">${commentData.author}</span>
+        <span class="film-details__comment-day">${commentData.date}</span>
+      </p>
+    </div>
+  </li>`.trim();
+    this._commentsBlock.appendChild(createElement(commentTemplate));
+    this._commentStatus.textContent = `Comment added`;
+    this._commentReset.classList.remove(`visually-hidden`);
+    this._commentCount.textContent = this._comments.length;
+  }
+
+  bind() {
+    this._element.querySelector(`.film-details__close-btn`).addEventListener(`click`, this._onCloseUpdate);
+    this._element.querySelector(`.film-details__user-rating-score`).addEventListener(`click`, this._onChooseRating);
+    this._element.querySelectorAll(`.film-details__emoji-list > label`).forEach((it) => it.addEventListener(`click`, this._onChooseEmoji));
+    document.body.addEventListener(`keydown`, this._onEscKeydown);
+    document.body.addEventListener(`keydown`, this._onSubmitClick);
+  }
+
+  unbind() {
+    this._element.querySelector(`.film-details__close-btn`).removeEventListener(`click`, this._onCloseUpdate);
+    this._element.querySelector(`.film-details__user-rating-score`).removeEventListener(`click`, this._onChooseRating);
+    this._element.querySelectorAll(`.film-details__emoji-list > label`).forEach((it) => it.removeEventListener(`click`, this._onChooseEmoji));
+    document.body.removeEventListener(`keydown`, this._onEscKeydown);
+    document.body.removeEventListener(`keydown`, this._onSubmitClick);
+  }
+
+  update(film) {
+    this._userRating = film.userRating;
+    this._comments = film.comments;
+    this._isFavorite = film.isFavorite;
+    this._isWatched = film.isWatched;
+    this._isInWatchList = film.isInWatchList;
+  }
+
+  shake() {
+    const ANIMATION_TIMEOUT = 600;
+    this._element.style.animation = `shake ${ANIMATION_TIMEOUT / 1000}s`;
+
+    setTimeout(() => {
+      this._element.style.animation = ``;
+    }, ANIMATION_TIMEOUT);
   }
 
   get template() {
@@ -215,7 +325,7 @@ export class Popup extends Component {
       <label for="watchlist" class="film-details__control-label film-details__control-label--watchlist">${this._isInWatchList ? `In watchlist` : `Add to watchlist`}</label>
 
       <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched" ${this._isWatched ? `checked` : ``}>
-      <label for="watched" class="film-details__control-label film-details__control-label--watched">${this.isWatched ? `Already watched` : `Isn't watched`}</label>
+      <label for="watched" class="film-details__control-label film-details__control-label--watched">${this._isWatched ? `Already watched` : `Isn't watched`}</label>
 
       <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite" ${this._isFavorite ? `checked` : ``}>
       <label for="favorite" class="film-details__control-label film-details__control-label--favorite">${this._isFavorite ? `In favorites` : `Add to favorites`}</label>
@@ -260,7 +370,7 @@ export class Popup extends Component {
     </section>
 
     <section class="film-details__user-rating-wrap">
-      <div class="film-details__user-rating-controls">
+      <div class="film-details__user-rating-controls visually-hidden">
         <span class="film-details__watched-status film-details__watched-status--active">Already watched</span>
         <button class="film-details__watched-reset" type="button">undo</button>
       </div>
@@ -285,55 +395,5 @@ export class Popup extends Component {
     </section>
   </form>
 </section>`.trim();
-  }
-
-  addComment() {
-    const commentsNode = this._element.querySelector(`.film-details__comments-list`);
-    const commentData = this._newData.comment;
-    const commentTemplate = `< li class="film-details__comment" >
-          <span class="film-details__comment-emoji">${Emoji[commentData.emotion]}</span>
-          <div>
-            <p class="film-details__comment-text">${commentData.comment}</p>
-            <p class="film-details__comment-info">
-              <span class="film-details__comment-author">${commentData.author}</span>
-              <span class="film-details__comment-day">${moment(commentData.date).fromNow()}</span>
-            </p>
-          </div>
-        </li >`;
-    commentsNode.appendChild(createElement(commentTemplate));
-
-  }
-
-  bind() {
-    this._element.querySelector(`.film-details__close-btn`).addEventListener(`click`, this._onCloseUpdate);
-    this._element.querySelector(`.film-details__user-rating-score`).addEventListener(`click`, this._onChooseRating);
-    this._element.querySelectorAll(`.film-details__emoji-list > label`).forEach((it) => it.addEventListener(`click`, this._onChooseEmoji));
-    document.body.addEventListener(`keydown`, this._onEscKeydown);
-    document.body.addEventListener(`keydown`, this._onSubmitClick);
-  }
-
-  unbind() {
-    this._element.querySelector(`.film-details__close-btn`).removeEventListener(`click`, this._onCloseClick);
-    this._element.querySelector(`.film-details__user-rating-score`).removeEventListener(`click`, this._onChooseRating);
-    this._element.querySelectorAll(`.film-details__emoji-list > label`).forEach((it) => it.removeEventListener(`click`, this._onChooseEmoji));
-    document.body.removeEventListener(`keydown`, this._onEscKeydown);
-    document.body.removeEventListener(`keydown`, this._onSubmitClick);
-  }
-
-  update(film) {
-    this._userRating = film.userRating;
-    this._comments = film.comments;
-    this._isFavorite = film.isFavorite;
-    this._isWatched = film.isWatched;
-    this._isInWatchList = film.isInWatchList;
-  }
-
-  shake() {
-    const ANIMATION_TIMEOUT = 600;
-    this._element.style.animation = `shake ${ANIMATION_TIMEOUT / 1000}s`;
-
-    setTimeout(() => {
-      this._element.style.animation = ``;
-    }, ANIMATION_TIMEOUT);
   }
 }
