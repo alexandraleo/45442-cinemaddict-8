@@ -14,11 +14,12 @@ export default class Filter extends Component {
   }
 
   _onFilterClick() {
+    this._isActive = !this._isActive;
     return typeof this._onFilter === `function` && this._onFilter();
   }
 
   get template() {
-    return `<a href="#${this._filterName.toLowerCase()}" class="main-navigation__item
+    return `<a href="#${this._href}" class="main-navigation__item
     ${this._isActive ? `main-navigation__item--active` : ``} ${this._filterName === `Stats` ? `main-navigation__item--additional` : ``}">${this._filterName}
     ${this._filterName === `Stats` ? `` : `<span class="main-navigation__item-count">${this._quantity}</span>`}</a >`;
   }
@@ -28,6 +29,10 @@ export default class Filter extends Component {
 
   unbind() {
     this._element.removeEventListener(`click`, this._onFilterClick);
+  }
+
+  update(newQuantity) {
+    this._quantity = newQuantity;
   }
 }
 
