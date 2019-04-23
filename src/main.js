@@ -16,8 +16,7 @@ const filmsContainer = document.querySelector(`.films-list .films-list__containe
 const filterContainer = document.querySelector(`.main-navigation`);
 const showMoreButton = document.querySelector(`.films-list__show-more`);
 const mainContainer = document.querySelector(`.main`);
-const searchNode = document.querySelector(`.header__search`);
-// const hiddenFilms = filmsContainer.querySelectorAll(`.film-card.visually-hidden`);
+const searchNode = document.querySelector(`.header__search .search`);
 const footerStatNode = document.querySelector(`.footer__statistics p`);
 
 // const updateFilm = (films, filmToUpdate, newData) => {
@@ -26,13 +25,13 @@ const footerStatNode = document.querySelector(`.footer__statistics p`);
 //   return films[index];
 // };
 
-export const getfilters = (filmArray) => {
+const getfilters = (filmArray) => {
   return [
     {filterName: `All movies`, href: `all`, isActive: true},
     {filterName: `Watchlist`, href: `watchlist`, quantity: countFilteredFilms(filmArray, `isInWatchList`)},
     {filterName: `History`, href: `history`, quantity: countFilteredFilms(filmArray, `isWatched`)},
     {filterName: `Favorites`, href: `favorites`, quantity: countFilteredFilms(filmArray, `isFavorite`)},
-    {filterName: `Stats`, href: `stats`, quantity: ``},
+    {filterName: `Stats`, href: `stats`},
   ];
 };
 
@@ -50,7 +49,7 @@ const renderFilters = (container, filmsArray) => {
     filterElement.onFilter = () => {
       const filteredFilms = filterFilms(filter.filterName, filmsArray);
       // console.log(filteredFilms.length);
-      renderFilms(filmsContainer, filteredFilms);
+      showLimitedFilmsNumber(filmsContainer, filteredFilms);
       if (document.querySelector(`.films`).classList.contains(`visually-hidden`)) {
         document.querySelector(`.films`).classList.remove(`visually-hidden`);
         document.querySelector(`.statistic`).classList.add(`visually-hidden`);
@@ -82,70 +81,29 @@ const filterFilms = (filterName, filmsArray, text = ``) => {
   }
 };
 
-// const findTopRated = (filmsArray) => {
-//   return filmsArray.slice().sort((a, b) => Number(b.rating) - Number(a.rating)).slice(0, TOP_FILMS_QUANTITY);
-// };
+let filmsToShowNumber = MAIN_FILMS_QUANTITY;
 
-// const findTopCommented = (filmsArray) => {
-//   return filmsArray.slice().sort((a, b) => Number(b.comments.length) - Number(a.comments.length)).slice(0, TOP_FILMS_QUANTITY);
-// };
-// const hiddenFilmsQuantity = () => filmsContainer.querySelectorAll(`.film-card.visually-hidden`).length;
+const updateComponents = () => {
+  api.updateFilm({id: film.id, data: film.toRAW()})
+    .then((newFilmData) => {
+      console.log(`watched:`, newFilmData);
+      // filmElement.update(newFilmData);
+      popupElement.update(newFilmData);
+    });
+  api.getFilms()
+    .then((films) => {
+      renderFilters(filterContainer, films);
+      renderStatistics(films);
+    });
+  };
 
-// const showMoreBehavior = () => {
-//   return hiddenFilms === 0 ? showMoreButton.classList.add(`visually-hidden`) : showMoreButton.classList.remove(`visually-hidden`);
-// };
-
-// const hideFilms = () => {
-//   const filmsToHide = filmsContainer.querySelectorAll(`.film-card`); // ?
-//   filmsToHide.forEach((film, index) => {
-//     return index >= MAIN_FILMS_QUANTITY && film.classList.add(`visually-hidden`);
-//   });
-// };
-
-// const onShowMoreButtonClick = () => {
-//   for (let i = 0; i < hiddenFilms && i < MAIN_FILMS_QUANTITY; i++) {
-//     hiddenFilms[i].classList.remove(`visually-hidden`);
-//   }
-//   showMoreBehavior();
-// };
-
-const global = {
-  activeFilter: null,
-  filmsCollection: null,
-  filteredCollection: null,
-  filmsCount: MAIN_FILMS_QUANTITY,
-};
-
-const setFilmCollection = (collection) => {
-  global.filmsCollection = collection;
-  global.filmsCount = Math.min(collection.length, MAIN_FILMS_QUANTITY);
-  global.filteredCollection = filterFilms(collection, global.activeFilter);
-};
-
-const renderShortenedFilmsList = (collection) => {
-  const shortenedCollection = collection.slice(0, MAIN_FILMS_QUANTITY);
-  filmsContainer.innerHTML = ``;
-  renderFilms(filmsContainer, shortenedCollection);
-  showMoreButton.classList.remove(`visually-hidden`);
-  showMoreButton.removeEventListener(`click`, onShowMoreButtonClick(collection));
-  showMoreButton.addEventListener(`click`, onShowMoreButtonClick(collection));
-
-  if (MAIN_FILMS_QUANTITY >= collection.length) {
+const showLimitedFilmsNumber = (container, filmsArray) => {
+  renderFilms(container, filmsArray.slice(0, filmsToShowNumber));
+  if (filmsToShowNumber >= filmArray.length) {
+    showMoreButton.addEventListener(`click`, onShowMoreButtonClick);
     showMoreButton.classList.add(`visually-hidden`);
   }
-};
-// -------------------------------------!
-const onShowMoreButtonClick = () => {
-  // evt.preventDefault();
-  const expandedCollection = global.filteredCollection.slice(global.filmsCount, global.filmsCount + MAIN_FILMS_QUANTITY);
-  global.filmsCount = global.filmsCount + MAIN_FILMS_QUANTITY;
-
-  renderFilms(filmsContainer, expandedCollection);
-
-  if (global.filmsCount >= global.filteredCollection.length) {
-    showMoreButton.classList.add(`visually-hidden`);
-    showMoreButton.removeEventListener(`click`, onShowMoreButtonClick);
-  }
+  filmsToShowNumber += MAIN_FILMS_QUANTITY;
 };
 
 const renderFilms = (container, filmArray, hasControlls = true) => {
@@ -153,13 +111,58 @@ const renderFilms = (container, filmArray, hasControlls = true) => {
 
   for (let film of filmArray) {
     const filmElement = new Film(film);
+    const popupElement = new Popup(film);
+
     filmElement.hasControls = hasControlls;
 
-    const popupElement = new Popup(film);
     container.appendChild(filmElement.render());
 
     filmElement.onClick = () => {
       document.body.appendChild(popupElement.render());
+    };
+
+    filmElement.onAddToWatchList = () => {
+      // // film.isInWatchlist = !film.isInWatchlist;
+      // api.updateFilm({id: film.id, data: film.toRAW()})
+      //   .then((newFilmData) => {
+      //     console.log(`addToWatchList:`, newFilmData);
+      //     // filmElement.update(newFilmData);
+      //     popupElement.update(newFilmData);
+      //   });
+      // api.getFilms()
+      //   .then((films) => renderFilters(filterContainer, films));
+      updateComponents();
+      console.log(`added to watchlist`, film.isInWatchList);
+    };
+
+    filmElement.onMarkAsWatched = () => {
+      // film.isWatched = !film.isWatched;
+      // api.updateFilm({id: film.id, data: film.toRAW()})
+      //   .then((newFilmData) => {
+      //     console.log(`watched:`, newFilmData);
+      //     // filmElement.update(newFilmData);
+      //     popupElement.update(newFilmData);
+      //   });
+      // api.getFilms()
+      //   .then((films) => {
+      //     renderFilters(filterContainer, films);
+      //     renderStatistics(films);
+      //   });
+      updateComponents();
+      console.log(`marked as watched`, film.isWatched);
+    };
+
+    filmElement.onMarkAsFavorite = () => {
+      // film.isFavorite = !film.isFavorite;
+      // api.updateFilm({id: film.id, data: film.toRAW()})
+      //   .then((newFilmData) => {
+      //     // filmElement.update(newFilmData);
+      //     popupElement.update(newFilmData);
+      //   });
+      // api.getFilms()
+      //   .then((films) => renderFilters(filterContainer, films));
+      updateComponents();
+      console.log(`marked as favorite`, film.isFavorite);
     };
 
     popupElement.onCloseClick = (newData) => {
@@ -245,56 +248,20 @@ const renderFilms = (container, filmArray, hasControlls = true) => {
           });
         });
     };
-
-    filmElement.onAddToWatchList = () => {
-      // film.isInWatchlist = !film.isInWatchlist;
-      api.updateFilm({id: film.id, data: film.toRAW()})
-        .then((newFilmData) => {
-          console.log(newFilmData);
-          filmElement.update(newFilmData);
-          popupElement.update(newFilmData);
-        }).catch(() => popupElement.shake());
-      // const updateCard = updateFilm(filmArray, film);
-      // filmElement.update(updateCard);
-      console.log(`added to watchlist`, film.isInWatchList);
-      // stat.update(filmArray);
-    };
-
-    filmElement.onMarkAsWatched = () => {
-      // film.isWatched = !film.isWatched;
-      api.updateFilm({id: film.id, data: film.toRAW()})
-        .then((newFilmData) => {
-          filmElement.update(newFilmData);
-          popupElement.update(newFilmData);
-        }).catch(() => popupElement.shake());
-      console.log(`marked as watched`, film.isWatched);
-      // stat
-    };
-
-    filmElement.onMarkAsFavorite = () => {
-      // film.isFavorite = !film.isFavorite;
-      api.updateFilm({id: film.id, data: film.toRAW()})
-        .then((newFilmData) => {
-          filmElement.update(newFilmData);
-          popupElement.update(newFilmData);
-        }).catch(() => popupElement.shake());
-      console.log(`marked as favorite`, film.isFavorite);
-      // stat
-    };
   }
 };
 
 const showSearchResults = (filmsArray, text) => {
   const filteredFilms = filterFilms(`Search`, filmsArray, text);
-  renderFilms(filmsContainer, filteredFilms, true);
+  showLimitedFilmsNumber(filmsContainer, filteredFilms, true);
 };
 
 const renderSearch = (container, filmsArray) => {
   const searchElement = new Search();
-  container.innerHTML = ``;
-  container.appendChild(searchElement.render());
+  const profileNode = document.querySelector(`.header__profile`);
+  container.insertBefore(searchElement.render(), profileNode);
 
-  searchElement.onSearchInput = () => {
+  searchElement.onSearchButtonPress = () => {
     showSearchResults(filmsArray, searchElement.element.value);
     console.log(searchElement.element.value);
   };
@@ -318,20 +285,19 @@ const showFooterStatistics = () => {
   footerStatNode.textContent = `${filmsQuantity} movie${filmsQuantity > 1 ? `s` : ``} inside`;
 };
 
-api.getFilms()
-.then((films) => {
-  setFilmCollection(films);
-  console.log(films);
-  console.log(countFilteredFilms(films, `isFavorite`));
-  renderFilms(filmsContainer, films);
-  // renderShortenedFilmsList(films);
-  renderFilms(topRatedNode, filterFilms(`Top rated`, films), false);
-  renderFilms(topCommentedNode, filterFilms(`Top commented`, films), false);
-  // hideFilms();
-  renderStatistics(films);
-  renderFilters(filterContainer, films);
-  renderSearch(searchNode, films);
-  showFooterStatistics();
-});
+const renderAllComponents = () => {
+  api.getFilms()
+  .then((films) => {
+    showLimitedFilmsNumber(filmsContainer, films);
+    renderFilms(topRatedNode, filterFilms(`Top rated`, films), false);
+    renderFilms(topCommentedNode, filterFilms(`Top commented`, films), false);
+    renderStatistics(films);
+    renderFilters(filterContainer, films);
+    renderSearch(searchNode, films);
+    showFooterStatistics();
 
-document.querySelector(`.films-list__show-more`).addEventListener(`click`, onShowMoreButtonClick);
+    const onShowMoreButtonClick = () => showLimitedFilmsNumber(films);
+    showMoreButton.addEventListener(`click`, onShowMoreButtonClick);
+})};
+
+renderAllComponents();
