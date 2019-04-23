@@ -26,19 +26,22 @@ const footerStatNode = document.querySelector(`.footer__statistics p`);
 //   return films[index];
 // };
 
-export const filters = (filmArray) => [
-  {filterName: `All movies`, href: `all`, quantity: filmArray.length, isActive: true},
-  {filterName: `Watchlist`, href: `watchlist`, quantity: countFilteredFilms(filmArray, `isInWatchlist`), isActive: false},
-  {filterName: `History`, href: `history`, quantity: countFilteredFilms(filmArray, `isWatched`), isActive: false},
-  {filterName: `Favorites`, href: `favorites`, quantity: countFilteredFilms(filmArray, `isFavorite`), isActive: false},
-  {filterName: `Stats`, href: `stats`, quantity: ``},
-];
+export const getfilters = (filmArray) => {
+  return [
+    {filterName: `All movies`, href: `all`, isActive: true},
+    {filterName: `Watchlist`, href: `watchlist`, quantity: countFilteredFilms(filmArray, `isInWatchList`)},
+    {filterName: `History`, href: `history`, quantity: countFilteredFilms(filmArray, `isWatched`)},
+    {filterName: `Favorites`, href: `favorites`, quantity: countFilteredFilms(filmArray, `isFavorite`)},
+    {filterName: `Stats`, href: `stats`, quantity: ``},
+  ];
+};
 
 const countFilteredFilms = (filmArray, property) => {
-  return filmArray.reduce((summ, curr) => +summ + +curr[`property`], 0);
+  return filmArray.reduce((summ, curr) => +summ + +curr[property], 0);
 };
 
 const renderFilters = (container, filmsArray) => {
+  const filters = getfilters(filmsArray);
   for (let filter of filters) {
     const filterElement = new Filter(filter);
     const newFilter = filterElement.render();
@@ -48,12 +51,16 @@ const renderFilters = (container, filmsArray) => {
       const filteredFilms = filterFilms(filter.filterName, filmsArray);
       // console.log(filteredFilms.length);
       renderFilms(filmsContainer, filteredFilms);
+      if (document.querySelector(`.films`).classList.contains(`visually-hidden`)) {
+        document.querySelector(`.films`).classList.remove(`visually-hidden`);
+        document.querySelector(`.statistic`).classList.add(`visually-hidden`);
+      }
     };
   }
   document.querySelector(`.main-navigation__item--additional`).addEventListener(`click`, onStatisticsClick);
 };
 
-const filterFilms = (filterName, filmsArray) => {
+const filterFilms = (filterName, filmsArray, text = ``) => {
   switch (filterName) {
     case `All movies`:
       return filmsArray;
@@ -69,7 +76,7 @@ const filterFilms = (filterName, filmsArray) => {
       return filmsArray.slice().sort((a, b) => Number(b.comments.length) - Number(a.comments.length)).slice(0, TOP_FILMS_QUANTITY);
     case `Search`:
       const regExpSearch = new RegExp(`${(text.length > 0) ? `${text.trim()}` : ``}`, `index`);
-      return filmArray.filter((it) => regExpSearch.text(it.filmTitle));
+      return filmsArray.filter((it) => regExpSearch.text(it.filmTitle));
     default:
       return filmsArray;
   }
@@ -128,8 +135,8 @@ const renderShortenedFilmsList = (collection) => {
   }
 };
 // -------------------------------------!
-const onShowMoreButtonClick = (evt) => {
-  evt.preventDefault();
+const onShowMoreButtonClick = () => {
+  // evt.preventDefault();
   const expandedCollection = global.filteredCollection.slice(global.filmsCount, global.filmsCount + MAIN_FILMS_QUANTITY);
   global.filmsCount = global.filmsCount + MAIN_FILMS_QUANTITY;
 
@@ -277,23 +284,26 @@ const renderFilms = (container, filmArray, hasControlls = true) => {
   }
 };
 
-const showSearchResults = () => {
-   
+const showSearchResults = (filmsArray, text) => {
+  const filteredFilms = filterFilms(`Search`, filmsArray, text);
+  renderFilms(filmsContainer, filteredFilms, true);
 };
 
-const renderSearch = (constainer, filmArray) => {
+const renderSearch = (container, filmsArray) => {
   const searchElement = new Search();
-  constainer.innerHTML = ``;
-  constainer.appendChild(searchElement.render());
+  container.innerHTML = ``;
+  container.appendChild(searchElement.render());
 
-  searchElement.onSearch = () => {
-    showSearchResults();
-  }
+  searchElement.onSearchInput = () => {
+    showSearchResults(filmsArray, searchElement.element.value);
+    console.log(searchElement.element.value);
+  };
+  return searchElement.element;
 };
 
 const onStatisticsClick = () => {
-  document.querySelector(`.films`).classList.toggle(`visually-hidden`);
-  document.querySelector(`.statistic`).classList.toggle(`visually-hidden`);
+  document.querySelector(`.films`).classList.add(`visually-hidden`);
+  document.querySelector(`.statistic`).classList.remove(`visually-hidden`);
 };
 
 const renderStatistics = (data) => {
@@ -312,13 +322,15 @@ api.getFilms()
 .then((films) => {
   setFilmCollection(films);
   console.log(films);
-  // renderFilms(filmsContainer, films);
-  renderShortenedFilmsList(films);
+  console.log(countFilteredFilms(films, `isFavorite`));
+  renderFilms(filmsContainer, films);
+  // renderShortenedFilmsList(films);
   renderFilms(topRatedNode, filterFilms(`Top rated`, films), false);
   renderFilms(topCommentedNode, filterFilms(`Top commented`, films), false);
   // hideFilms();
   renderStatistics(films);
   renderFilters(filterContainer, films);
+  renderSearch(searchNode, films);
   showFooterStatistics();
 });
 

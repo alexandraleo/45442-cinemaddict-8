@@ -9,7 +9,7 @@ export default class Statistics extends Component {
     this._onStatisticsClick = this._onStatisticsClick.bind(this);
   }
   get template() {
-    return `<section class="statistic visually-hidden">
+    return `<section class="statistic">
     <p class="statistic__rank">Your rank: <span class="statistic__rank-label">${this._giveRank()}</span></p>
 
     <form action="https://echo.htmlacademy.ru/" method="get" class="statistic__filters visually-hidden">
